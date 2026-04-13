@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rocket Integral Volume Lab — Kalkulus Terapan</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,700;1,400&family=Oxanium:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128/examples/js/controls/OrbitControls.js"></script>
+<style>
+:root {
+  --bg:#030508;--panel:rgba(5,8,18,0.97);--border:rgba(56,189,248,0.2);
+  --accent:#38bdf8;--violet:#818cf8;--orange:#fb923c;--green:#34d399;
+  --red:#f87171;--gold:#fbbf24;--text:#e2e8f0;--muted:#475569;
+  --mono:'JetBrains Mono',monospace;--sans:'Oxanium',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--sans)}
+canvas.main{display:block;position:fixed;inset:0;z-index:0}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px}
+#grid-bg{position:fixed;inset:0;pointer-events:none;z-index:1;
+  background-image:linear-gradient(rgba(56,189,248,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,0.025) 1px,transparent 1px);
+  background-size:48px 48px}
+#left{position:fixed;top:12px;left:12px;width:286px;background:var(--panel);border:1px solid var(--border);
+  border-radius:14px;padding:15px;z-index:30;max-height:calc(100vh - 24px);overflow-y:auto;
+  box-shadow:0 0 60px rgba(0,0,0,0.95),inset 0 1px 0 rgba(255,255,255,0.04)}
+.ph{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.ph-icon{width:34px;height:34px;background:linear-gradient(135deg,#0ea5e9,#6366f1);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.ph-title{font-size:12px;font-weight:800;line-height:1.2}
+.ph-sub{font-size:8px;font-family:var(--mono);color:var(--accent);letter-spacing:.2em;margin-top:1px}
+.slbl{font-size:8px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.2em;display:block;margin-bottom:5px}
+select{width:100%;background:rgba(10,15,30,0.9);border:1px solid var(--border);border-radius:8px;padding:8px 10px;
+  color:var(--text);font-family:var(--sans);font-size:11px;cursor:pointer;outline:none;transition:border-color .2s;margin-bottom:10px}
+select:focus{border-color:var(--accent)}
+.param-group{margin-bottom:9px}
+.param-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;gap:6px}
+.param-lbl{font-size:9px;font-family:var(--mono);color:var(--muted);text-transform:uppercase;letter-spacing:.1em;flex:1}
+.param-num{width:60px;background:rgba(10,15,30,0.9);border:1px solid var(--border);border-radius:6px;
+  padding:3px 6px;color:var(--accent);font-family:var(--mono);font-size:11px;font-weight:700;text-align:right;outline:none;transition:border-color .2s}
+.param-num:focus{border-color:var(--accent)}
+input[type=range]{appearance:none;width:100%;height:3px;background:rgba(30,41,59,0.9);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;background:var(--accent);border-radius:50%;cursor:pointer;border:2px solid #fff;box-shadow:0 0 4px rgba(56,189,248,.5)}
+.div{height:1px;background:var(--border);margin:10px 0}
+.vol-card{background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,.25);border-radius:10px;padding:11px;text-align:center;margin-bottom:9px}
+.vol-main-val{font-size:20px;font-weight:800;color:#fff;margin:2px 0}
+.vol-formula{font-size:8px;font-family:var(--mono);color:var(--muted)}
+.seg-row{margin-bottom:6px}
+.seg-lbl-row{display:flex;justify-content:space-between;font-size:9px;font-family:var(--mono);margin-bottom:2px}
+.seg-bar{height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden}
+.seg-fill{height:100%;border-radius:2px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.stats2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:7px}
+.sc{background:rgba(10,15,30,0.8);border:1px solid rgba(56,189,248,.1);border-radius:8px;padding:7px}
+.sc-lbl{font-size:8px;font-family:var(--mono);color:var(--muted);text-transform:uppercase}
+.sc-val{font-size:15px;font-weight:800;margin-top:1px}
+#calc-panel{background:rgba(6,8,20,0.95);border:1px solid rgba(129,140,248,.25);border-radius:10px;padding:12px;margin-top:9px}
+.calc-title{font-size:8px;font-family:var(--mono);color:var(--violet);text-transform:uppercase;letter-spacing:.2em;margin-bottom:8px;display:flex;align-items:center;gap:4px}
+.method-row{display:flex;gap:4px;margin-bottom:8px}
+.mb{flex:1;padding:5px 3px;border-radius:6px;border:1px solid var(--border);background:rgba(10,15,30,0.8);color:var(--muted);
+  font-size:9px;font-family:var(--mono);cursor:pointer;transition:all .2s;text-align:center;text-transform:uppercase;letter-spacing:.05em}
+.mb.active{background:rgba(129,140,248,.15);border-color:var(--violet);color:var(--violet)}
+.fx-box{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.06);border-radius:7px;padding:9px;
+  font-family:var(--mono);font-size:9.5px;line-height:1.9;color:#64748b;margin-bottom:7px}
+.fx-box .hl{color:var(--violet);font-weight:700}.fx-box .hl2{color:var(--accent)}.fx-box .hl3{color:var(--green)}
+.n-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.n-lbl{font-size:9px;font-family:var(--mono);color:var(--muted);text-transform:uppercase}
+.n-val{font-size:11px;font-family:var(--mono);color:var(--violet);font-weight:700}
+.rtable{width:100%;border-collapse:collapse;margin-top:6px;font-size:8px;font-family:var(--mono)}
+.rtable th{color:var(--violet);padding:2px 4px;text-align:left;border-bottom:1px solid rgba(129,140,248,.2)}
+.rtable td{color:var(--muted);padding:2px 4px;border-bottom:1px solid rgba(255,255,255,.03)}
+.rtable .hl{color:var(--text)}
+.conv-table{width:100%;border-collapse:collapse;font-size:8px;font-family:var(--mono);margin-top:6px}
+.conv-table th{color:var(--accent);padding:2px 4px;text-align:left;border-bottom:1px solid var(--border)}
+.conv-table td{color:var(--muted);padding:2px 4px}
+.conv-table .good{color:var(--green)}.conv-table .cur{color:var(--gold);font-weight:700}
+#right{position:fixed;top:12px;right:12px;width:306px;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:13px;z-index:30;box-shadow:0 0 60px rgba(0,0,0,0.95)}
+.rh{font-size:8px;font-family:var(--mono);color:var(--accent);text-transform:uppercase;letter-spacing:.2em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+#canvas2d{width:100%;height:215px;border-radius:7px;background:#010204;border:1px solid rgba(56,189,248,.15);display:block;cursor:crosshair}
+.canvas-info{font-size:7.5px;font-family:var(--mono);color:var(--muted);margin-top:5px;line-height:1.6}
+#line-overlay{position:fixed;inset:0;pointer-events:none;z-index:10}
+#labels-c{position:fixed;inset:0;pointer-events:none;z-index:11}
+.rlbl{position:absolute;pointer-events:auto;background:rgba(5,8,18,0.92);border:1px solid rgba(56,189,248,.3);
+  border-left:2px solid var(--accent);border-radius:0 7px 7px 0;padding:5px 9px;font-size:8.5px;font-family:var(--mono);
+  transition:all .25s ease;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.6);white-space:nowrap}
+.rlbl:hover,.rlbl.sel{background:rgba(56,189,248,.1);border-color:var(--accent);transform:translateX(5px);white-space:normal;max-width:210px}
+.rlbl.sel{border-left-color:var(--green)}
+.ln{color:#fff;font-weight:700;font-size:8.5px;text-transform:uppercase;letter-spacing:.1em}
+.lv{color:var(--accent);font-size:10px;font-weight:700;margin:1px 0}
+.lfx{color:var(--violet);font-size:7.5px;margin:1px 0}
+.ld{color:var(--muted);font-size:7.5px;line-height:1.4;display:none;margin-top:2px}
+.rlbl:hover .ld,.rlbl.sel .ld{display:block}
+#hud{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);
+  border-radius:10px;padding:7px 16px;display:flex;align-items:center;gap:18px;z-index:30;font-family:var(--mono);font-size:8px;
+  box-shadow:0 0 30px rgba(0,0,0,.9)}
+.hi{display:flex;flex-direction:column;align-items:center;gap:1px}
+.hv{font-size:11px;font-weight:700}
+.hlbl{color:var(--muted);letter-spacing:.15em;text-transform:uppercase;font-size:7px}
+.hsep{width:1px;height:24px;background:var(--border)}
+#notif{position:fixed;top:12px;left:50%;transform:translateX(-50%) translateY(-18px);background:rgba(52,211,153,.15);
+  border:1px solid var(--green);border-radius:8px;padding:6px 13px;font-family:var(--mono);font-size:9.5px;
+  color:var(--green);z-index:50;opacity:0;transition:all .3s;pointer-events:none}
+#notif.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#explain{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.94);
+  background:rgba(5,8,18,0.98);border:1px solid var(--violet);border-radius:13px;padding:20px;z-index:60;
+  width:370px;max-width:90vw;display:none;box-shadow:0 0 80px rgba(129,140,248,.2);font-family:var(--mono);font-size:10px;
+  transition:transform .25s ease}
+#explain.show{display:block;transform:translate(-50%,-50%) scale(1)}
+.ex-title{color:var(--violet);font-size:11px;font-weight:700;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
+.ex-close{cursor:pointer;color:var(--muted);font-size:15px;line-height:1}.ex-close:hover{color:#fff}
+.ex-formula{background:rgba(0,0,0,.5);border:1px solid rgba(129,140,248,.2);border-radius:7px;padding:11px;
+  line-height:2.1;color:#94a3b8;margin-bottom:9px}
+.ex-formula .hl{color:var(--violet);font-size:12px}.ex-formula .hl2{color:var(--accent)}
+.ex-desc{color:var(--muted);line-height:1.7;font-size:9px}
+#reset-cam{position:fixed;bottom:12px;right:12px;z-index:30;background:var(--panel);border:1px solid var(--border);
+  border-radius:8px;padding:6px 11px;font-family:var(--mono);font-size:8.5px;color:var(--muted);cursor:pointer;
+  transition:all .2s;box-shadow:0 0 20px rgba(0,0,0,.8)}
+#reset-cam:hover{color:var(--accent);border-color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="grid-bg"></div>
+<svg id="line-overlay"></svg>
+<div id="labels-c"></div>
+<div id="notif"></div>
+
+<div id="explain">
+  <div class="ex-title"><span id="ex-title-txt">Part Detail</span><span class="ex-close" onclick="closeExplain()">✕</span></div>
+  <div class="ex-formula" id="ex-formula-txt"></div>
+  <div class="ex-desc" id="ex-desc-txt"></div>
+</div>
+
+<div id="left">
+  <div class="ph">
+    <div class="ph-icon">🚀</div>
+    <div>
+      <div class="ph-title">Rocket Integral<br>Volume Lab</div>
+      <div class="ph-sub">V = π ∫[f(x)]² dx</div>
+    </div>
+  </div>
+  <span class="slbl">Arsitektur Misi</span>
+  <select id="mode">
+    <option value="crew">👨‍🚀 SLS Artemis — Crew Mission</option>
+    <option value="cargo">🛰 Titan Heavy — Cargo/Satellite</option>
+    <option value="hybrid">🔭 Explorer-1 — Interplanetary</option>
+  </select>
+  <div class="div"></div>
+  <span class="slbl">Parameter Geometri (Manual / Slider)</span>
+  <div class="param-group">
+    <div class="param-row">
+      <span class="param-lbl">Radius r (m)</span>
+      <input type="number" class="param-num" id="r-num" min="1.5" max="6" step="0.1" value="3.0">
+    </div>
+    <input type="range" id="radius" min="1.5" max="6" step="0.1" value="3.0">
+  </div>
+  <div class="param-group">
+    <div class="param-row">
+      <span class="param-lbl">Tinggi h (m)</span>
+      <input type="number" class="param-num" id="h-num" min="12" max="35" step="0.1" value="18.0">
+    </div>
+    <input type="range" id="height" min="12" max="35" step="0.1" value="18">
+  </div>
+  <div class="div"></div>
+  <div class="vol-card">
+    <div class="slbl" style="margin:0 0 2px">Total Volume — Numerical Integration</div>
+    <div class="vol-main-val" id="vol-total">0 m³</div>
+    <div class="vol-formula" id="vol-eq">V = V_LOX + V_Fuel + V_Payload</div>
+  </div>
+  <div class="seg-row">
+    <div class="seg-lbl-row"><span style="color:var(--accent)">V_LOX</span><span id="v-lox" style="color:var(--accent)">0 m³</span></div>
+    <div class="seg-bar"><div class="seg-fill" id="b-lox" style="background:var(--accent);width:0%"></div></div>
+  </div>
+  <div class="seg-row">
+    <div class="seg-lbl-row"><span style="color:var(--orange)">V_Fuel</span><span id="v-fuel" style="color:var(--orange)">0 m³</span></div>
+    <div class="seg-bar"><div class="seg-fill" id="b-fuel" style="background:var(--orange);width:0%"></div></div>
+  </div>
+  <div class="seg-row">
+    <div class="seg-lbl-row"><span style="color:var(--violet)">V_Payload</span><span id="v-payload" style="color:var(--violet)">0 m³</span></div>
+    <div class="seg-bar"><div class="seg-fill" id="b-payload" style="background:var(--violet);width:0%"></div></div>
+  </div>
+  <div class="stats2">
+    <div class="sc"><div class="sc-lbl">Crew</div><div class="sc-val" id="s-crew" style="color:var(--green)">0</div></div>
+    <div class="sc"><div class="sc-lbl">Net Cargo</div><div class="sc-val" id="s-cargo" style="color:var(--orange)">0 t</div></div>
+  </div>
+  <div class="div"></div>
+  <div id="calc-panel">
+    <div class="calc-title"><span>∫</span> Mode Kalkulus</div>
+    <div class="method-row">
+      <div class="mb active" data-m="disk" onclick="setMethod('disk')">Disk</div>
+      <div class="mb" data-m="washer" onclick="setMethod('washer')">Washer</div>
+      <div class="mb" data-m="shell" onclick="setMethod('shell')">Shell</div>
+    </div>
+    <div class="fx-box" id="fx-display">Loading...</div>
+    <div class="fx-box" id="fx-piecewise"></div>
+    <div class="fx-box" id="integral-global"></div>
+    <div class="n-row">
+      <span class="n-lbl">Irisan n</span>
+      <span class="n-val" id="n-val">20</span>
+    </div>
+    <input type="range" id="nSlices" min="4" max="80" step="2" value="20">
+    <div style="margin-top:7px">
+      <div style="font-size:7.5px;font-family:var(--mono);color:var(--muted);margin-bottom:3px">Sample irisan (LOX):</div>
+      <table class="rtable" id="r-table"></table>
+    </div>
+    <div style="margin-top:7px">
+      <div style="font-size:7.5px;font-family:var(--mono);color:var(--muted);margin-bottom:3px">Konvergensi n → ∞:</div>
+      <table class="conv-table" id="conv-table"></table>
+    </div>
+  </div>
+  <div style="font-size:7.5px;font-family:var(--mono);color:var(--muted);text-align:center;margin-top:7px">
+    Klik label → isolate &amp; explain | Dbl-click → reset kamera
+  </div>
+</div>
+
+<div id="right">
+  <div class="rh">
+    <span>∫ Visualisasi f(x) — Profil Roket</span>
+    <span id="canvas-method-lbl" style="color:var(--violet)">DISK</span>
+  </div>
+  <canvas id="canvas2d" width="560" height="400"></canvas>
+  <div class="canvas-info" id="canvas-info">Hover canvas → lihat nilai f(x) dan dV di titik tersebut.</div>
+</div>
+
+<div id="hud">
+  <div class="hi"><div class="hv" id="h-r" style="color:var(--accent)">3.0m</div><div class="hlbl">Radius</div></div>
+  <div class="hsep"></div>
+  <div class="hi"><div class="hv" id="h-h" style="color:var(--green)">18m</div><div class="hlbl">Tinggi</div></div>
+  <div class="hsep"></div>
+  <div class="hi"><div class="hv" id="h-n" style="color:var(--violet)">20</div><div class="hlbl">n-slices</div></div>
+  <div class="hsep"></div>
+  <div class="hi"><div class="hv" id="h-err" style="color:var(--orange)">—</div><div class="hlbl">Error %</div></div>
+  <div class="hsep"></div>
+  <div class="hi"><div class="hv" id="h-vtot" style="color:var(--gold)">0 m³</div><div class="hlbl">V Total</div></div>
+  <div class="hsep"></div>
+  <div class="hi"><div class="hv" id="h-met" style="color:var(--violet)">DISK</div><div class="hlbl">Method</div></div>
+</div>
+<button id="reset-cam" ondblclick="resetCamera()">⟳ Reset View (dbl-click)</button>
+
+<script>
+// ══════════════════════════════════════════════════
+// 1. THREE.JS SETUP
+// ══════════════════════════════════════════════════
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x030508);
+scene.fog=new THREE.FogExp2(0x030508,0.007);
+const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,0.1,1000);
+camera.position.set(60,28,65);
+const camInitPos=camera.position.clone();
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.domElement.className='main';
+document.body.appendChild(renderer.domElement);
+const controls=new THREE.OrbitControls(camera,renderer.domElement);
+controls.enableDamping=true;controls.dampingFactor=0.05;
+controls.target.set(20,12,0);
+const grid=new THREE.GridHelper(200,80,0x0c1220,0x070d18);
+grid.position.y=-20;scene.add(grid);
+scene.add(new THREE.AmbientLight(0xffffff,0.35));
+const keyL=new THREE.DirectionalLight(0xffffff,2.0);
+keyL.position.set(50,80,50);keyL.castShadow=true;
+keyL.shadow.mapSize.set(2048,2048);scene.add(keyL);
+const rimL=new THREE.PointLight(0x38bdf8,9,200);rimL.position.set(-45,35,-45);scene.add(rimL);
+const fillL=new THREE.PointLight(0x818cf8,4,150);fillL.position.set(40,-5,-55);scene.add(fillL);
+const engGlow=new THREE.PointLight(0xfb923c,0,30);scene.add(engGlow);
+function resetCamera(){camera.position.copy(camInitPos);controls.target.set(20,12,0);}
+renderer.domElement.addEventListener('dblclick',resetCamera);
+
+// ══════════════════════════════════════════════════
+// 2. GLOBALS
+// ══════════════════════════════════════════════════
+const rocketGrp=new THREE.Group();scene.add(rocketGrp);
+let labelData=[],liquidMeshes=[],sliceMeshes=[],allPartMeshes=[];
+let selectedIdx=null,currentMethod='disk',currentR=3.0,currentH=18.0;
+const lineOverlay=document.getElementById('line-overlay');
+const canvas2d=document.getElementById('canvas2d');
+const ctx2d=canvas2d.getContext('2d');
+
+// ══════════════════════════════════════════════════
+// 3. SINGLE SOURCE OF TRUTH: getSections(r,h)
+//    All geometry + integrals + canvas use SAME fn
+// ══════════════════════════════════════════════════
+function getSections(r,h){
+  return{
+    skirt:{label:'Engine Skirt',a:0,b:h*0.09,color:0x94a3b8,colorHex:'#94a3b8',
+      fn:(x)=>r*(1.06-0.12*(x/(h*0.09))),
+      formulaStr:`f(x) = r·(1.06 − 0.12·x/${(h*0.09).toFixed(2)})`},
+    lox:{label:'LOX Tank',a:h*0.09,b:h*0.40,color:0x38bdf8,colorHex:'#38bdf8',
+      fn:(x)=>r*(1.00-0.04*(x/h))*0.94,
+      formulaStr:`f(x) = r·(1−0.04·x/${h.toFixed(1)})·0.94`,
+      integralStr:`V_LOX = π∫[${(h*0.09).toFixed(1)}→${(h*0.40).toFixed(1)}] [f(x)]² dx`},
+    fuel:{label:'RP-1 Fuel',a:h*0.40,b:h*0.68,color:0xfb923c,colorHex:'#fb923c',
+      fn:(x)=>r*(1.00-0.04*(x/h))*0.94,
+      formulaStr:`f(x) = r·(1−0.04·x/${h.toFixed(1)})·0.94`,
+      integralStr:`V_Fuel = π∫[${(h*0.40).toFixed(1)}→${(h*0.68).toFixed(1)}] (R²−r²) dx`},
+    transition:{label:'Transition',a:h*0.68,b:h*0.78,color:0x334155,colorHex:'#334155',
+      fn:(x)=>{const t=(x-h*0.68)/(h*0.10);return r*(0.96-0.18*t)*0.94;},
+      formulaStr:`f(x) = r·(0.96−0.18·t)·0.94`},
+    nose:{label:'Nose Cone',a:h*0.78,b:h,color:0xd1d5db,colorHex:'#d1d5db',
+      fn:(x)=>{const nH=h*0.22,t=(x-h*0.78)/nH;return r*0.78*Math.sqrt(Math.max(0,1-t*t));},
+      formulaStr:`f(x) = 0.78r·√(1−((x−${(h*0.78).toFixed(1)})/${(h*0.22).toFixed(1)})²)`,
+      integralStr:`V_nose = π∫[${(h*0.78).toFixed(1)}→${h.toFixed(1)}] [0.78r·√(1−t²)]² dx`}
+  };
+}
+
+// ══════════════════════════════════════════════════
+// 4. INTEGRATION ENGINE
+// ══════════════════════════════════════════════════
+function riemannDisk(fn,a,b,n){
+  const dx=(b-a)/n;let V=0;const steps=[];
+  for(let i=0;i<n;i++){const x=a+(i+.5)*dx,ri=fn(x),dV=Math.PI*ri*ri*dx;V+=dV;
+    if(i<5)steps.push({i,x:x.toFixed(3),r:ri.toFixed(3),dV:dV.toFixed(4)});}
+  return{V,steps};
+}
+function riemannWasher(outerFn,innerFn,a,b,n){
+  const dx=(b-a)/n;let V=0;const steps=[];
+  for(let i=0;i<n;i++){const x=a+(i+.5)*dx,R=outerFn(x),ri=innerFn(x),dV=Math.PI*(R*R-ri*ri)*dx;V+=dV;
+    if(i<5)steps.push({i,x:x.toFixed(3),R:R.toFixed(3),r:ri.toFixed(3),dV:dV.toFixed(4)});}
+  return{V,steps};
+}
+function riemannShell(fn,a,b,n){
+  const dx=(b-a)/n;let V=0;const steps=[];
+  for(let i=0;i<n;i++){const x=a+(i+.5)*dx,fx=fn(x),dV=2*Math.PI*x*fx*dx;V+=dV;
+    if(i<5)steps.push({i,x:x.toFixed(3),fx:fx.toFixed(3),dV:dV.toFixed(4)});}
+  return{V,steps};
+}
+function integrate(fn,a,b,n,method,innerFn){
+  if(method==='disk')return riemannDisk(fn,a,b,n);
+  if(method==='washer')return riemannWasher(fn,innerFn||(x=>fn(x)*0.15),a,b,n);
+  if(method==='shell')return riemannShell(fn,a,b,n);
+}
+function refVol(fn,a,b){return riemannDisk(fn,a,b,5000).V;}
+
+// ══════════════════════════════════════════════════
+// 5. f(x) → LatheGeometry helper
+// ══════════════════════════════════════════════════
+function fnToLathe(fn,a,b,steps,yOff){
+  const pts=[];
+  for(let i=0;i<=steps;i++){
+    const x=a+(i/steps)*(b-a);
+    pts.push(new THREE.Vector2(Math.max(0.01,fn(x)),x-a+(yOff||0)));
+  }
+  return pts;
+}
+
+// ══════════════════════════════════════════════════
+// 6. SLICE VISUALIZATION (from sections fn)
+// ══════════════════════════════════════════════════
+function buildSlices(sec,n,method){
+  sliceMeshes.forEach(m=>rocketGrp.remove(m));sliceMeshes=[];
+  const lox=sec.lox,dx=(lox.b-lox.a)/n;
+  const col=method==='disk'?0x818cf8:method==='washer'?0xfb923c:0x34d399;
+  for(let i=0;i<n;i++){
+    const xc=lox.a+(i+.5)*dx,ri=lox.fn(xc),alpha=0.06+(i%2)*0.04;
+    let geo;
+    if(method==='disk'){geo=new THREE.CylinderGeometry(ri,ri,dx*.82,32,1,true);}
+    else if(method==='washer'){
+      geo=new THREE.CylinderGeometry(ri,ri,dx*.82,32,1,true);
+      const im=new THREE.Mesh(new THREE.CylinderGeometry(ri*.17,ri*.17,dx*.82,24,1,true),
+        new THREE.MeshStandardMaterial({color:0xfb923c,transparent:true,opacity:0.04,side:THREE.DoubleSide}));
+      im.position.y=xc;rocketGrp.add(im);sliceMeshes.push(im);
+    }else{const sw=ri*.07;geo=new THREE.CylinderGeometry(ri+sw,ri,dx*.82,32,1,true);}
+    const m=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:col,transparent:true,opacity:alpha,side:THREE.DoubleSide,emissive:col,emissiveIntensity:0.25}));
+    m.position.y=xc;rocketGrp.add(m);sliceMeshes.push(m);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(ri,.023,4,32),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.35}));
+    ring.rotation.x=Math.PI/2;ring.position.y=xc;rocketGrp.add(ring);sliceMeshes.push(ring);
+  }
+}
+
+// ══════════════════════════════════════════════════
+// 7. MISSION-SPECIFIC MODELS
+// ══════════════════════════════════════════════════
+function buildCrew(r,h){
+  const grp=new THREE.Group();
+  // Service module
+  const smH=r*1.6,smFn=(x)=>r*(1-0.02*(x/smH));
+  const sm=new THREE.Mesh(new THREE.LatheGeometry(fnToLathe(smFn,0,smH,14),48),
+    new THREE.MeshPhysicalMaterial({color:0xfafafa,metalness:.5,roughness:.3}));
+  sm.position.y=h;grp.add(sm);
+  // Solar panels
+  const pMat=new THREE.MeshStandardMaterial({color:0x1e3a8a,emissive:0x1e40af,emissiveIntensity:.3});
+  for(let i=0;i<4;i++){
+    const p=new THREE.Mesh(new THREE.BoxGeometry(r*2.7,r*.42,.06),pMat);
+    p.rotation.z=Math.PI/4+i*Math.PI/2;p.position.set(Math.cos(i*Math.PI/2)*r*1.25,h+smH*.5,Math.sin(i*Math.PI/2)*r*1.25);grp.add(p);
+  }
+  // Orion capsule
+  const capH=r*1.4,capFn=(x)=>r*.97*Math.sqrt(Math.max(0,1-(x/capH)*(x/capH)*.55));
+  const cap=new THREE.Mesh(new THREE.LatheGeometry(fnToLathe(capFn,0,capH,22),48),
+    new THREE.MeshPhysicalMaterial({color:0x94a3b8,metalness:.4,roughness:.5}));
+  cap.position.y=h+smH;grp.add(cap);
+  // CREW inside capsule
+  const crewCount=Math.min(6,2+Math.floor(r*.8));
+  for(let i=0;i<crewCount;i++){
+    const ang=(i/crewCount)*Math.PI*2,dist=r*.38;
+    const cg=new THREE.Group();
+    cg.add(new THREE.Mesh(new THREE.BoxGeometry(r*.18,r*.27,r*.09),new THREE.MeshStandardMaterial({color:0x1e293b})));
+    const torso=new THREE.Mesh(new THREE.CylinderGeometry(r*.09,r*.09,r*.22,12),new THREE.MeshStandardMaterial({color:0xfafafa}));
+    torso.position.y=r*.22;torso.rotation.x=-0.22;cg.add(torso);
+    const head=new THREE.Mesh(new THREE.SphereGeometry(r*.08,12,12),new THREE.MeshPhysicalMaterial({color:0xffffff,metalness:.1,roughness:.1,transparent:true,opacity:.82}));
+    head.position.set(0,r*.36,r*.04);cg.add(head);
+    const visor=new THREE.Mesh(new THREE.SphereGeometry(r*.055,10,10),new THREE.MeshStandardMaterial({color:0xfbbf24,metalness:.9,roughness:.04}));
+    visor.position.set(0,r*.36,r*.08);cg.add(visor);
+    cg.position.set(Math.cos(ang)*dist,h+smH+capH*.28,Math.sin(ang)*dist);
+    grp.add(cg);
+  }
+  const smV=riemannDisk(smFn,0,smH,40).V,capV=riemannDisk(capFn,0,capH,40).V;
+  return{grp,vol:smV+capV,sm,cap,capFn,capH,smH,smV,capV};
+}
+
+function buildCargo(r,h){
+  const grp=new THREE.Group();
+  const fH=h*.50,fR=r*1.58;
+  const fairFn=(x)=>fR*(1-(x/fH)*(x/fH));// parabola
+  const fair=new THREE.Mesh(new THREE.LatheGeometry(fnToLathe(fairFn,0,fH,28),48),
+    new THREE.MeshPhysicalMaterial({color:0xfafafa,transparent:true,opacity:.12,metalness:.8,roughness:.2,side:THREE.DoubleSide}));
+  fair.position.y=h;grp.add(fair);
+  // Satellite bus
+  const satY=h+fH*.43,sg=new THREE.Group();
+  sg.add(new THREE.Mesh(new THREE.CylinderGeometry(r*.78,r*.78,r*1.1,6),
+    new THREE.MeshPhysicalMaterial({color:0xfbbf24,metalness:.95,roughness:.04})));
+  const wMat=new THREE.MeshStandardMaterial({color:0x1e3a8a,emissive:0x1e40af,emissiveIntensity:.4});
+  for(let i=0;i<2;i++){
+    const sd=i===0?1:-1;
+    [r*1.8,r*3.6].forEach((ox,j)=>{
+      const w=new THREE.Mesh(new THREE.BoxGeometry(r*1.8,r*.54,.05),wMat);
+      w.position.set(sd*ox,0,0);sg.add(w);
+    });
+  }
+  // Dish antenna
+  const dPts=[];for(let j=0;j<=16;j++){const t=j/16;dPts.push(new THREE.Vector2(t*r*.62,t*t*r*.2));}
+  const dish=new THREE.Mesh(new THREE.LatheGeometry(dPts,30),
+    new THREE.MeshPhysicalMaterial({color:0xfafafa,metalness:.8,roughness:.1,side:THREE.DoubleSide}));
+  dish.rotation.x=Math.PI;dish.position.y=r*.68;sg.add(dish);
+  // Thrusters
+  for(let i=0;i<4;i++){
+    const ang=(i/4)*Math.PI*2;
+    const th=new THREE.Mesh(new THREE.CylinderGeometry(r*.04,r*.06,r*.12,8),new THREE.MeshStandardMaterial({color:0x334155,metalness:1}));
+    th.position.set(Math.cos(ang)*r*.76,r*.44,Math.sin(ang)*r*.76);sg.add(th);
+  }
+  sg.position.y=satY;grp.add(sg);
+  const fVol=riemannDisk(fairFn,0,fH,40).V;
+  return{grp,vol:fVol,fair,fairFn,fH,fR};
+}
+
+function buildHybrid(r,h){
+  const grp=new THREE.Group();
+  const hH=r*4.2,hFn=(x)=>r*.82*Math.sqrt(Math.max(0,1-(x/hH)*(x/hH)));
+  const head=new THREE.Mesh(new THREE.LatheGeometry(fnToLathe(hFn,0,hH,36),48),
+    new THREE.MeshPhysicalMaterial({color:0xd1d5db,metalness:1,roughness:.04}));
+  head.position.y=h;grp.add(head);
+  // Radiators
+  const rMat=new THREE.MeshStandardMaterial({color:0x0f172a,metalness:.9,emissive:0x0891b2,emissiveIntensity:.2});
+  for(let i=0;i<2;i++){const sd=i===0?1:-1;
+    const rad=new THREE.Mesh(new THREE.BoxGeometry(.1,h*.72,r*2.6),rMat);
+    rad.position.set(sd*r*1.3,h*.62,0);grp.add(rad);}
+  // Antennae
+  const aMat=new THREE.MeshStandardMaterial({color:0x94a3b8,metalness:.95,emissive:0x38bdf8,emissiveIntensity:.1});
+  for(let i=0;i<3;i++){
+    const ang=(i/3)*Math.PI*2;
+    const ant=new THREE.Mesh(new THREE.CylinderGeometry(.04,.04,r*2.2,6),aMat);
+    ant.position.set(Math.cos(ang)*r*.7,h+hH*.62,Math.sin(ang)*r*.7);ant.rotation.x=-.28;grp.add(ant);
+    const dPts2=[];for(let j=0;j<=10;j++){const t=j/10;dPts2.push(new THREE.Vector2(t*r*.36,t*t*r*.13));}
+    const dish2=new THREE.Mesh(new THREE.LatheGeometry(dPts2,18),
+      new THREE.MeshStandardMaterial({color:0xfafafa,metalness:.6,roughness:.2,side:THREE.DoubleSide}));
+    dish2.position.set(Math.cos(ang)*r*.7,h+hH*.88,Math.sin(ang)*r*.7);grp.add(dish2);
+  }
+  // RTG
+  const rtg=new THREE.Mesh(new THREE.CylinderGeometry(r*.17,r*.17,r*1.1,12),
+    new THREE.MeshPhysicalMaterial({color:0x334155,metalness:.95,emissive:0xfb923c,emissiveIntensity:.25}));
+  rtg.position.set(r*1.05,h*.4,0);rtg.rotation.z=Math.PI/2;grp.add(rtg);
+  const hVol=riemannDisk(hFn,0,hH,40).V;
+  return{grp,vol:hVol,head,hFn,hH};
+}
+
+// ══════════════════════════════════════════════════
+// 8. MAIN BUILD
+// ══════════════════════════════════════════════════
+function buildRocket(){
+  rocketGrp.clear();
+  labelData=[];liquidMeshes=[];sliceMeshes=[];allPartMeshes=[];selectedIdx=null;
+  const r=parseFloat(document.getElementById('radius').value);
+  const h=parseFloat(document.getElementById('height').value);
+  const mode=document.getElementById('mode').value;
+  const n=parseInt(document.getElementById('nSlices').value);
+  currentR=r;currentH=h;
+  rocketGrp.position.set(14+r*2.2,-h*.5+2,0);
+  controls.target.set(14+r*2.2,h*.3,0);
+  engGlow.position.set(14+r*2.2,-6,0);
+  const sec=getSections(r,h);
+
+  // ── OUTER SHELL (all sections → one LatheGeometry) ──
+  let shellPts=[];
+  ['skirt','lox','fuel','transition','nose'].forEach(k=>{
+    const s=sec[k];const steps=16;
+    for(let i=0;i<=steps;i++){
+      const x=s.a+(i/steps)*(s.b-s.a);
+      shellPts.push(new THREE.Vector2(Math.max(0.01,s.fn(x)),x));
+    }
+  });
+  const shellColor=mode==='hybrid'?0xd1d5db:0xfafafa;
+  rocketGrp.add(new THREE.Mesh(new THREE.LatheGeometry(shellPts,64),
+    new THREE.MeshPhysicalMaterial({color:shellColor,transparent:true,opacity:.09,metalness:.9,roughness:.15,side:THREE.DoubleSide})));
+  rocketGrp.add(new THREE.LineSegments(
+    new THREE.EdgesGeometry(new THREE.LatheGeometry(shellPts,24)),
+    new THREE.LineBasicMaterial({color:0x0ea5e9,transparent:true,opacity:.16})));
+
+  // ── LOX TANK ──
+  const lox=sec.lox;
+  const loxMesh=new THREE.Mesh(new THREE.LatheGeometry(fnToLathe(lox.fn,lox.a,lox.b,20,0),40),
+    new THREE.MeshStandardMaterial({color:0x38bdf8,emissive:0x38bdf8,emissiveIntensity:.55,transparent:true,opacity:.75}));
+  loxMesh.position.y=lox.a;loxMesh.userData={sk:'lox'};
+  rocketGrp.add(loxMesh);liquidMeshes.push(loxMesh);allPartMeshes.push(loxMesh);
+  const loxInt=integrate(lox.fn,lox.a,lox.b,n,currentMethod);
+  labelData.push({name:'LOX Tank',vol:loxInt.V,
+    formulaStr:lox.formulaStr,
+    domainStr:`x ∈ [${lox.a.toFixed(2)}, ${lox.b.toFixed(2)}]`,
+    integralStr:lox.integralStr||`V = π∫[${lox.a.toFixed(1)}→${lox.b.toFixed(1)}] [f(x)]² dx`,
+    desc:'Oksigen Cair (LOX)\nT ≈ −183°C | Oksidator utama',
+    pos:new THREE.Vector3(r,lox.a+(lox.b-lox.a)/2,0),mesh:loxMesh,color:'#38bdf8',steps:loxInt.steps});
+
+  // ── FUEL TANK ──
+  const fuel=sec.fuel;const fuelInner=(x)=>fuel.fn(x)*.16;
+  const fuelMesh=new THREE.Mesh(new THREE.LatheGeometry(fnToLathe(fuel.fn,fuel.a,fuel.b,20,0),40),
+    new THREE.MeshStandardMaterial({color:0xfb923c,emissive:0xfb923c,emissiveIntensity:.55,transparent:true,opacity:.75}));
+  fuelMesh.position.y=fuel.a;fuelMesh.userData={sk:'fuel'};
+  rocketGrp.add(fuelMesh);liquidMeshes.push(fuelMesh);allPartMeshes.push(fuelMesh);
+  const fuelInt=currentMethod==='washer'?riemannWasher(fuel.fn,fuelInner,fuel.a,fuel.b,n):integrate(fuel.fn,fuel.a,fuel.b,n,currentMethod);
+  labelData.push({name:'RP-1 Fuel',vol:fuelInt.V,
+    formulaStr:fuel.formulaStr,
+    domainStr:`x ∈ [${fuel.a.toFixed(2)}, ${fuel.b.toFixed(2)}]`,
+    integralStr:currentMethod==='washer'?`V = π∫[${fuel.a.toFixed(1)}→${fuel.b.toFixed(1)}] (R²−r²) dx`:fuel.integralStr||`V = π∫... dx`,
+    desc:'Propelan RP-1 (bahan bakar roket)\nMetode Washer: ada pipa oksidator di tengah',
+    pos:new THREE.Vector3(r,fuel.a+(fuel.b-fuel.a)/2,0),mesh:fuelMesh,color:'#fb923c',steps:fuelInt.steps});
+
+  // ── ENGINE NOZZLES (LatheGeometry bell curve) ──
+  const nCnt=mode==='cargo'?5:4,engH=h*.11;
+  for(let i=0;i<nCnt;i++){
+    const ang=(i/nCnt)*Math.PI*2,dist=nCnt===1?0:r*.55;
+    const bPts=[];for(let j=0;j<=14;j++){const t=j/14;bPts.push(new THREE.Vector2(r*.18+r*.19*t*t,t*engH));}
+    const noz=new THREE.Mesh(new THREE.LatheGeometry(bPts,24),
+      new THREE.MeshPhysicalMaterial({color:0x0f172a,metalness:1,roughness:.05,emissive:0x0ea5e9,emissiveIntensity:.4}));
+    noz.position.set(Math.cos(ang)*dist,-engH*.45,Math.sin(ang)*dist);rocketGrp.add(noz);
+  }
+  const engFn=(x)=>r*(.9+.12*(1-x/engH));
+  const engVol=currentMethod==='shell'?riemannShell(engFn,0,engH,n):riemannDisk(engFn,0,engH,n);
+  labelData.push({name:`Engine RS-25 ×${nCnt}`,vol:engVol.V*nCnt,
+    formulaStr:`f(x) = r·(0.9+0.12·(1−x/${engH.toFixed(1)}))`,
+    domainStr:`x ∈ [0, ${engH.toFixed(2)}]`,
+    integralStr:currentMethod==='shell'?`V = 2π·${nCnt}·∫ x·f(x) dx`:`V = π·${nCnt}·∫ [f(x)]² dx`,
+    desc:`${nCnt}× mesin RS-25\nGaya dorong: ${(nCnt*1.86).toFixed(1)} MN`,
+    pos:new THREE.Vector3(r,0,0),mesh:null,color:'#94a3b8',steps:[]});
+
+  // ── SRB ──
+  if(mode!=='hybrid'){
+    const srbR=r*.42,srbH=h*.92;
+    const srbFn=(x)=>{const t=x/srbH;
+      if(t<.08)return srbR*(.65+.35*(t/.08));
+      if(t>.86)return srbR*Math.sqrt(Math.max(0,1-((t-.86)/.14)*((t-.86)/.14)));
+      return srbR;};
+    const srbPts=fnToLathe(srbFn,0,srbH,34,0);
+    const srbVol=riemannDisk(srbFn,0,srbH,n);
+    for(let i=0;i<2;i++){
+      const sd=i===0?1:-1;
+      const srb=new THREE.Mesh(new THREE.LatheGeometry(srbPts,28),
+        new THREE.MeshPhysicalMaterial({color:0xf1f5f9,metalness:.3,roughness:.5}));
+      srb.position.set(sd*(r+srbR+.55),0,0);rocketGrp.add(srb);allPartMeshes.push(srb);
+    }
+    labelData.push({name:'SRB ×2',vol:srbVol.V*2,
+      formulaStr:`f(x) = srbR·profil(x/${srbH.toFixed(1)})`,
+      domainStr:`x ∈ [0, ${srbH.toFixed(2)}]`,
+      integralStr:`V = 2·π∫[0→${srbH.toFixed(1)}] [f(x)]² dx`,
+      desc:'2× Solid Rocket Booster\n75% daya dorong lepas landas',
+      pos:new THREE.Vector3(r+srbR*2.2,srbH/2,0),mesh:null,color:'#f1f5f9',steps:[]});
+  }
+
+  // ── PAYLOAD (mission-specific) ──
+  let payloadVol=0;
+  if(mode==='crew'){
+    const d=buildCrew(r,h);rocketGrp.add(d.grp);payloadVol=d.vol;
+    allPartMeshes.push(d.sm,d.cap);
+    labelData.push({name:'Orion Capsule',vol:d.capV,
+      formulaStr:`f(x) = 0.97r·√(1−(x/${d.capH.toFixed(1)})²·0.55)`,
+      domainStr:`x ∈ [0, ${d.capH.toFixed(2)}]`,
+      integralStr:`V = π∫[0→${d.capH.toFixed(1)}] [0.97r·√(1−...)]² dx`,
+      desc:`Kapsul Orion — bentuk ogive\n${Math.min(6,2+Math.floor(r*.8))} astronot di dalam kapsul`,
+      pos:new THREE.Vector3(r,h+d.smH+d.capH*.5,0),mesh:d.cap,color:'#94a3b8',steps:[]});
+    labelData.push({name:'Service Module',vol:d.smV,
+      formulaStr:`f(x) = r·(1−0.02·x/${d.smH.toFixed(1)})`,
+      domainStr:`x ∈ [0, ${d.smH.toFixed(2)}]`,
+      integralStr:`V = π∫[0→${d.smH.toFixed(1)}] [f(x)]² dx`,
+      desc:'Listrik, air, oksigen\nPropulsi manuver orbital',
+      pos:new THREE.Vector3(r,h+d.smH*.5,0),mesh:d.sm,color:'#64748b',steps:[]});
+  } else if(mode==='cargo'){
+    const d=buildCargo(r,h);rocketGrp.add(d.grp);payloadVol=d.vol;
+    labelData.push({name:'Payload Fairing',vol:d.vol,
+      formulaStr:`f(x) = ${d.fR.toFixed(1)}·(1−(x/${d.fH.toFixed(1)})²)`,
+      domainStr:`x ∈ [0, ${d.fH.toFixed(2)}]`,
+      integralStr:`V = π∫[0→${d.fH.toFixed(1)}] [fR·(1−t²)]² dx = π·fR²·h·(8/15)`,
+      desc:'Perisai muatan parabola\nSatelit di dalam fairing',
+      pos:new THREE.Vector3(d.fR,h+d.fH*.4,0),mesh:null,color:'#fafafa',steps:[]});
+  } else {
+    const d=buildHybrid(r,h);rocketGrp.add(d.grp);payloadVol=d.vol;
+    labelData.push({name:'Science Module',vol:d.vol,
+      formulaStr:`f(x) = 0.82r·√(1−(x/${d.hH.toFixed(1)})²)`,
+      domainStr:`x ∈ [0, ${d.hH.toFixed(2)}]`,
+      integralStr:`V = π∫[0→${d.hH.toFixed(1)}] [0.82r·√(1−t²)]² dx = (2/3)π(0.82r)²h`,
+      desc:'Modul sains hemispheroid\nSensor radar + kamera planet',
+      pos:new THREE.Vector3(r,h+d.hH*.4,0),mesh:d.head,color:'#d1d5db',steps:[]});
+  }
+
+  buildSlices(sec,n,currentMethod);
+  updateStats(r,h,mode,loxInt.V,fuelInt.V,payloadVol,n);
+  updateLabelsDOM();
+  updateRiemannTable(labelData[0].steps);
+  updateConvTable(sec.lox.fn,sec.lox.a,sec.lox.b,n);
+  updateFormulaPanel(r,h);
+  drawCanvas(sec,n);
+  updatePiecewiseDisplay(r,h);
+  updateIntegralGlobal(r,h);
+}
+
+// ══════════════════════════════════════════════════
+// 9. 2D CANVAS
+// ══════════════════════════════════════════════════
+function drawCanvas(sec,n){
+  const W=canvas2d.width,H=canvas2d.height,r=currentR,h=currentH;
+  const P={t:26,b:30,l:36,r:16};const pw=W-P.l-P.r,ph=H-P.t-P.b;
+  ctx2d.clearRect(0,0,W,H);
+  ctx2d.fillStyle='#010204';ctx2d.fillRect(0,0,W,H);
+  // Grid
+  ctx2d.strokeStyle='rgba(56,189,248,0.07)';ctx2d.lineWidth=.8;
+  for(let i=0;i<=8;i++){const x=P.l+i/8*pw;ctx2d.beginPath();ctx2d.moveTo(x,P.t);ctx2d.lineTo(x,P.t+ph);ctx2d.stroke();}
+  for(let i=0;i<=5;i++){const y=P.t+i/5*ph;ctx2d.beginPath();ctx2d.moveTo(P.l,y);ctx2d.lineTo(P.l+pw,y);ctx2d.stroke();}
+  // Axes
+  ctx2d.strokeStyle='rgba(56,189,248,0.5)';ctx2d.lineWidth=1.1;
+  ctx2d.beginPath();ctx2d.moveTo(P.l,P.t);ctx2d.lineTo(P.l,P.t+ph);ctx2d.moveTo(P.l,P.t+ph);ctx2d.lineTo(P.l+pw,P.t+ph);ctx2d.stroke();
+  ctx2d.fillStyle='rgba(56,189,248,0.7)';ctx2d.font='8px JetBrains Mono,monospace';
+  ctx2d.fillText('x (m)',P.l+pw-22,P.t+ph+18);
+  ctx2d.save();ctx2d.translate(10,P.t+ph/2);ctx2d.rotate(-Math.PI/2);ctx2d.fillText('f(x)',-14,0);ctx2d.restore();
+  const sx=(x)=>P.l+(x/h)*pw,sy=(y)=>P.t+ph-(y/(r*1.15))*ph;
+  const sColors={skirt:'#64748b',lox:'#38bdf8',fuel:'#fb923c',transition:'#1e293b',nose:'#e2e8f0'};
+  // Riemann rects (LOX section)
+  const lox=sec.lox,dx=(lox.b-lox.a)/n,method=currentMethod;
+  for(let i=0;i<n;i++){
+    const x0=lox.a+i*dx,xc=x0+dx/2,ri=lox.fn(xc),x1=x0+dx;
+    const sx0=sx(x0),sx1=sx(x1),sy0=sy(ri),syB=sy(0),al=0.16+(i%2)*.1;
+    if(method==='disk'){ctx2d.fillStyle=`rgba(129,140,248,${al})`;ctx2d.strokeStyle='rgba(129,140,248,0.5)';}
+    else if(method==='washer'){ctx2d.fillStyle=`rgba(251,146,60,${al})`;ctx2d.strokeStyle='rgba(251,146,60,0.5)';}
+    else{ctx2d.fillStyle=`rgba(52,211,153,${al})`;ctx2d.strokeStyle='rgba(52,211,153,0.5)';}
+    ctx2d.lineWidth=.6;ctx2d.fillRect(sx0,sy0,sx1-sx0,syB-sy0);ctx2d.strokeRect(sx0,sy0,sx1-sx0,syB-sy0);
+    if(method==='washer'){const rI=ri*.16,syI=sy(rI);ctx2d.fillStyle='rgba(2,4,10,0.75)';ctx2d.fillRect(sx0,syI,sx1-sx0,syB-syI);}
+  }
+  // Curve fill
+  ctx2d.beginPath();ctx2d.moveTo(sx(0),sy(0));
+  ['skirt','lox','fuel','transition','nose'].forEach(k=>{
+    const s=sec[k];for(let i=0;i<=30;i++){const x=s.a+(i/30)*(s.b-s.a);ctx2d.lineTo(sx(x),sy(s.fn(x)));}
+  });
+  ctx2d.lineTo(sx(h),sy(0));ctx2d.closePath();ctx2d.fillStyle='rgba(56,189,248,0.05)';ctx2d.fill();
+  // Curves
+  ['skirt','lox','fuel','transition','nose'].forEach(k=>{
+    const s=sec[k];ctx2d.strokeStyle=sColors[k];ctx2d.lineWidth=1.7;ctx2d.setLineDash([]);
+    ctx2d.beginPath();let fst=true;
+    for(let i=0;i<=50;i++){const x=s.a+(i/50)*(s.b-s.a);
+      if(fst){ctx2d.moveTo(sx(x),sy(s.fn(x)));fst=false;}else ctx2d.lineTo(sx(x),sy(s.fn(x)));}
+    ctx2d.stroke();
+  });
+  // Labels on canvas
+  [{k:'lox',lbl:'LOX'},{k:'fuel',lbl:'FUEL'},{k:'nose',lbl:'NOSE'}].forEach(({k,lbl})=>{
+    const s=sec[k],mid=(s.a+s.b)/2,fy=s.fn(mid);
+    ctx2d.fillStyle=sColors[k];ctx2d.font='bold 7.5px JetBrains Mono,monospace';ctx2d.fillText(lbl,sx(mid)-10,sy(fy)-4);
+  });
+  // X-ticks
+  ctx2d.fillStyle='rgba(100,116,139,0.85)';ctx2d.font='7.5px JetBrains Mono,monospace';
+  [0,.25,.5,.75,1].forEach(t=>ctx2d.fillText((t*h).toFixed(0),sx(t*h)-5,P.t+ph+14));
+  // Method label
+  const mCols={disk:'#818cf8',washer:'#fb923c',shell:'#34d399'};
+  const mLbls={disk:'DISK METHOD',washer:'WASHER METHOD',shell:'SHELL METHOD'};
+  ctx2d.fillStyle=mCols[method];ctx2d.font='bold 8px JetBrains Mono,monospace';
+  ctx2d.fillText(mLbls[method],P.l+pw-88,P.t-8);
+  ctx2d.fillStyle='rgba(56,189,248,0.65)';ctx2d.font='8px JetBrains Mono,monospace';
+  ctx2d.fillText('f(x) = profil radius roket',P.l+2,P.t-8);
+}
+
+canvas2d.addEventListener('mousemove',e=>{
+  const rect=canvas2d.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(canvas2d.width/rect.width);
+  const h=currentH,r=currentR,P={l:36,r:16,t:26,b:30};
+  const pw=canvas2d.width-P.l-P.r;
+  const x=((mx-P.l)/pw)*h;
+  if(x<0||x>h)return;
+  const sec=getSections(r,h);
+  let fx=0;
+  for(const k of['skirt','lox','fuel','transition','nose']){
+    const s=sec[k];if(x>=s.a&&x<=s.b){fx=s.fn(x);break;}
+  }
+  document.getElementById('canvas-info').textContent=
+    `x=${x.toFixed(2)}m | f(x)=${fx.toFixed(3)}m | [f(x)]²=${(fx*fx).toFixed(4)}m² | dV=π·${(fx*fx).toFixed(3)}·Δx`;
+});
+
+// ══════════════════════════════════════════════════
+// 10. UI UPDATES
+// ══════════════════════════════════════════════════
+function updateStats(r,h,mode,vLox,vFuel,vPay,n){
+  const vT=vLox+vFuel+vPay;
+  const ref=refVol(getSections(r,h).lox.fn,h*.09,h*.40);
+  const apx=riemannDisk(getSections(r,h).lox.fn,h*.09,h*.40,n).V;
+  const err=ref>0?Math.abs((apx-ref)/ref*100):0;
+  document.getElementById('vol-total').textContent=vT.toFixed(2)+' m³';
+  document.getElementById('vol-eq').textContent=`V_LOX+V_Fuel+V_Payload = ${vT.toFixed(1)} m³`;
+  document.getElementById('v-lox').textContent=vLox.toFixed(2)+' m³';
+  document.getElementById('v-fuel').textContent=vFuel.toFixed(2)+' m³';
+  document.getElementById('v-payload').textContent=vPay.toFixed(2)+' m³';
+  const bt=vT||1;
+  document.getElementById('b-lox').style.width=(vLox/bt*100)+'%';
+  document.getElementById('b-fuel').style.width=(vFuel/bt*100)+'%';
+  document.getElementById('b-payload').style.width=(vPay/bt*100)+'%';
+  let crew=0,cargo=0;
+  if(mode==='crew'){crew=Math.min(8,3+Math.floor(r*.8));cargo=(vT*.15).toFixed(1);}
+  else if(mode==='cargo'){crew=0;cargo=(vT*.75).toFixed(1);}
+  else{crew=4;cargo=(vT*.5).toFixed(1);}
+  document.getElementById('s-crew').textContent=crew;
+  document.getElementById('s-cargo').textContent=cargo+' t';
+  document.getElementById('n-val').textContent=n;
+  document.getElementById('h-r').textContent=r.toFixed(1)+'m';
+  document.getElementById('h-h').textContent=h.toFixed(0)+'m';
+  document.getElementById('h-n').textContent=n;
+  document.getElementById('h-err').textContent=err.toFixed(2)+'%';
+  document.getElementById('h-vtot').textContent=vT.toFixed(1)+'m³';
+  document.getElementById('h-met').textContent=currentMethod.toUpperCase();
+}
+
+function updateRiemannTable(steps){
+  if(!steps||!steps.length)return;
+  const n=parseInt(document.getElementById('nSlices').value);
+  const dx=(currentH*.40-currentH*.09)/n;
+  const isW=steps[0]&&steps[0].R!==undefined,isS=currentMethod==='shell';
+  let hdr=`<tr><th>i</th><th>xᵢ (m)</th><th>rᵢ (m)</th><th>dV (m³)</th></tr>`;
+  if(isW)hdr=`<tr><th>i</th><th>xᵢ</th><th>R</th><th>r</th><th>dV</th></tr>`;
+  if(isS)hdr=`<tr><th>i</th><th>xᵢ</th><th>f(xᵢ)</th><th>dV</th></tr>`;
+  const rows=steps.slice(0,4).map(s=>{
+    if(isW)return`<tr><td>${s.i}</td><td>${s.x}</td><td class="hl">${s.R}</td><td>${s.r}</td><td class="hl">${s.dV}</td></tr>`;
+    if(isS)return`<tr><td>${s.i}</td><td>${s.x}</td><td class="hl">${s.fx}</td><td class="hl">${s.dV}</td></tr>`;
+    return`<tr><td>${s.i}</td><td>${s.x}</td><td class="hl">${s.r}</td><td class="hl">${s.dV}</td></tr>`;
+  }).join('');
+  document.getElementById('r-table').innerHTML=hdr+rows+`<tr><td colspan="4" style="color:var(--muted)">…  Δx=${dx.toFixed(3)}m</td></tr>`;
+}
+
+function updateConvTable(fn,a,b,curN){
+  const ns=[4,10,20,40,80,5000];
+  const refV=riemannDisk(fn,a,b,5000).V;
+  let html=`<tr><th>n</th><th>V (m³)</th><th>Error %</th></tr>`;
+  ns.forEach(ni=>{
+    const v=riemannDisk(fn,a,b,ni).V;
+    const err=refV>0?Math.abs((v-refV)/refV*100):0;
+    const iC=ni===curN,iT=ni===5000;
+    html+=`<tr><td class="${iC?'cur':iT?'good':''}">${iT?'∞ ref':ni}</td>
+      <td class="${iC?'cur':iT?'good':''}">${v.toFixed(3)}</td>
+      <td class="${err<.1?'good':''}">${iT?'≈0.000':err.toFixed(3)+'%'}</td></tr>`;
+  });
+  document.getElementById('conv-table').innerHTML=html;
+}
+
+function updatePiecewiseDisplay(r,h){
+    const el = document.getElementById('fx-piecewise');
+
+    el.innerHTML = `
+    <span class="hl">Piecewise Function f(x)</span><br>
+    f(x) =
+    {<br>
+    &nbsp;&nbsp;f₁(x) = r(1.06 − 0.12·x/${(h*0.09).toFixed(2)}), &nbsp; 0 ≤ x < ${(h*0.09).toFixed(1)}<br>
+    &nbsp;&nbsp;f₂(x) = r(1 − 0.04·x/${h.toFixed(1)})·0.94, ${(h*0.09).toFixed(1)} ≤ x < ${(h*0.40).toFixed(1)}<br>
+    &nbsp;&nbsp;f₃(x) = r(1 − 0.04·x/${h.toFixed(1)})·0.94, ${(h*0.40).toFixed(1)} ≤ x < ${(h*0.68).toFixed(1)}<br>
+    &nbsp;&nbsp;f₄(x) = transition(x), ${(h*0.68).toFixed(1)} ≤ x < ${(h*0.78).toFixed(1)}<br>
+    &nbsp;&nbsp;f₅(x) = 0.78r√(1 − t²), ${(h*0.78).toFixed(1)} ≤ x ≤ ${h.toFixed(1)}<br>
+    }
+    `;
+}
+
+function updateFormulaPanel(r,h){
+  const el=document.getElementById('fx-display');
+  const rv=r?r.toFixed(1):'r',hv=h?h.toFixed(1):'h';
+  if(currentMethod==='disk')
+    el.innerHTML=`<span class="hl">Cakram (Disk)</span><br>V = <span class="hl">π</span>∫ₐᵇ <span class="hl2">[f(x)]²</span>dx<br>≈ Σ <span class="hl">π</span>·<span class="hl2">rᵢ²</span>·Δx<br><br><span class="hl3">LOX:</span> f(x)=${rv}·(1−0.04x/${hv})·0.94<br><span class="hl3">Nose:</span> f(x)=${(r*.78).toFixed(2)}·√(1−t²)`;
+  else if(currentMethod==='washer')
+    el.innerHTML=`<span class="hl">Cincin (Washer)</span><br>V = <span class="hl">π</span>∫ₐᵇ (<span class="hl2">R²</span>−<span class="hl">r²</span>)dx<br>R(x) = dinding luar<br>r(x) = pipa tengah × 0.16<br><br><span class="hl3">Fuel:</span> R=${rv}·(1−0.04x/${hv})·0.94`;
+  else
+    el.innerHTML=`<span class="hl">Kulit Tabung (Shell)</span><br>V = <span class="hl">2π</span>∫ₐᵇ <span class="hl2">x·f(x)</span>dx<br>≈ Σ 2π·xᵢ·f(xᵢ)·Δx<br><br><span class="hl3">Rotasi</span> terhadap sumbu-y<br><span class="hl3">Disk:</span> rotasi terhadap sumbu-x`;
+  document.getElementById('canvas-method-lbl').textContent=currentMethod.toUpperCase();
+}
+
+function updateIntegralGlobal(r,h){
+  const el = document.getElementById('integral-global');
+
+  el.innerHTML = `
+  <span class="hl">Definisi Volume Total (Kalkulus)</span><br>
+
+  V = π ∫₀ʰ [f(x)]² dx<br><br>
+
+  Karena f(x) berbentuk piecewise:<br>
+
+  V = π [<br>
+  &nbsp;&nbsp;∫₀^${(h*0.09).toFixed(1)} f₁(x)² dx +<br>
+  &nbsp;&nbsp;∫_${(h*0.09).toFixed(1)}^${(h*0.40).toFixed(1)} f₂(x)² dx +<br>
+  &nbsp;&nbsp;∫_${(h*0.40).toFixed(1)}^${(h*0.68).toFixed(1)} f₃(x)² dx +<br>
+  &nbsp;&nbsp;∫_${(h*0.68).toFixed(1)}^${(h*0.78).toFixed(1)} f₄(x)² dx +<br>
+  &nbsp;&nbsp;∫_${(h*0.78).toFixed(1)}^${h.toFixed(1)} f₅(x)² dx<br>
+  ]<br><br>
+
+  <span class="hl2">Disk Method:</span> rotasi terhadap sumbu-x<br>
+  <span class="hl2">Shell Method:</span> rotasi terhadap sumbu-y
+  `;
+}
+
+function updateLabelsDOM(){
+  const c=document.getElementById('labels-c');c.innerHTML='';
+  labelData.forEach((pt,i)=>{
+    const d=document.createElement('div');d.className='rlbl';d.id=`lbl-${i}`;
+    d.innerHTML=`<div class="ln" style="color:${pt.color}">${pt.name}</div>
+      <div class="lv">V = ${pt.vol.toFixed(3)} m³</div>
+      <div class="lfx">${pt.formulaStr}</div>
+      <div class="ld">${pt.domainStr}<br>${pt.integralStr}<br><br>${(pt.desc||'').replace(/\n/g,'<br>')}</div>`;
+    d.addEventListener('click',()=>selectPart(i));
+    c.appendChild(d);
+  });
+}
+
+// ══════════════════════════════════════════════════
+// 11. SELECTION / ISOLATION / EXPLAIN
+// ══════════════════════════════════════════════════
+function selectPart(idx){
+  selectedIdx=selectedIdx===idx?null:idx;
+  // Isolate
+  allPartMeshes.forEach(m=>{
+    if(!m||!m.material)return;
+    m.material.opacity=selectedIdx!==null?.07:.75;
+    if(m.material.emissiveIntensity!==undefined)m.material.emissiveIntensity=selectedIdx!==null?.04:.55;
+  });
+  liquidMeshes.forEach(m=>{
+    if(!m||!m.material)return;
+    m.material.opacity=selectedIdx!==null?.07:.75;
+    if(m.material.emissiveIntensity!==undefined)m.material.emissiveIntensity=selectedIdx!==null?.04:.55;
+  });
+  document.querySelectorAll('.rlbl').forEach((el,i)=>el.classList.toggle('sel',i===selectedIdx));
+  if(selectedIdx!==null){
+    const pt=labelData[selectedIdx];
+    if(pt.mesh&&pt.mesh.material){pt.mesh.material.opacity=.90;pt.mesh.material.emissiveIntensity=1.8;}
+    if(pt.mesh){
+      const wp=new THREE.Vector3();pt.mesh.getWorldPosition(wp);
+      const lerp=()=>{controls.target.lerp(wp,.06);if(controls.target.distanceTo(wp)>.35)requestAnimationFrame(lerp);};lerp();
+    }
+    showExplain(pt);
+    showNotif(`✓ ${pt.name} — V = ${pt.vol.toFixed(2)} m³`);
+  } else closeExplain();
+}
+
+function showExplain(pt){
+  document.getElementById('ex-title-txt').textContent=pt.name;
+  document.getElementById('ex-formula-txt').innerHTML=
+    `<span class="hl">${pt.formulaStr}</span><br><br>`+
+    `<span class="hl2">${pt.domainStr}</span><br>`+
+    `<span class="hl2">${pt.integralStr}</span><br><br>`+
+    `Volume = <span class="hl" style="font-size:15px">${pt.vol.toFixed(4)} m³</span>`;
+  document.getElementById('ex-desc-txt').innerHTML=(pt.desc||'').replace(/\n/g,'<br>');
+  document.getElementById('explain').classList.add('show');
+}
+function closeExplain(){document.getElementById('explain').classList.remove('show');}
+function showNotif(msg){
+  const n=document.getElementById('notif');n.textContent=msg;n.classList.add('show');
+  setTimeout(()=>n.classList.remove('show'),2800);
+}
+
+// ══════════════════════════════════════════════════
+// 12. METHOD
+// ══════════════════════════════════════════════════
+function setMethod(m){
+  currentMethod=m;
+  document.querySelectorAll('.mb').forEach(b=>b.classList.toggle('active',b.dataset.m===m));
+  buildRocket();
+}
+
+// ══════════════════════════════════════════════════
+// 13. INPUT SYNC (slider ↔ number)
+// ══════════════════════════════════════════════════
+function syncInputs(){
+  const rS=document.getElementById('radius'),rN=document.getElementById('r-num');
+  rS.addEventListener('input',()=>{rN.value=parseFloat(rS.value).toFixed(1);buildRocket();});
+  rN.addEventListener('input',()=>{let v=parseFloat(rN.value);if(isNaN(v))return;v=Math.min(6,Math.max(1.5,v));rS.value=v;buildRocket();});
+  const hS=document.getElementById('height'),hN=document.getElementById('h-num');
+  hS.addEventListener('input',()=>{hN.value=parseFloat(hS.value).toFixed(1);buildRocket();});
+  hN.addEventListener('input',()=>{let v=parseFloat(hN.value);if(isNaN(v))return;v=Math.min(35,Math.max(12,v));hS.value=v;buildRocket();});
+  document.getElementById('mode').addEventListener('change',buildRocket);
+  document.getElementById('nSlices').addEventListener('input',buildRocket);
+}
+
+// ══════════════════════════════════════════════════
+// 14. ANIMATION LOOP
+// ══════════════════════════════════════════════════
+function animate(){
+  requestAnimationFrame(animate);
+  const t=Date.now()*.001;
+  rocketGrp.rotation.y+=.0013;
+  liquidMeshes.forEach((m,i)=>{if(!m)return;m.rotation.x=Math.sin(t*1.7+i)*.027;m.rotation.z=Math.cos(t*1.3+i)*.027;});
+  sliceMeshes.forEach((m,i)=>{if(m&&m.material&&m.material.transparent)m.material.opacity=.04+.04*Math.sin(t*1.8+i*.25);});
+  rimL.intensity=7+Math.sin(t*1.6)*2.5;
+  engGlow.intensity=1.2+Math.sin(t*11)*.9;
+  // Lines
+  lineOverlay.innerHTML='';
+  labelData.forEach((pt,idx)=>{
+    const el=document.getElementById(`lbl-${idx}`);if(!el)return;
+    const v=pt.pos.clone(),ang=rocketGrp.rotation.y,ox=v.x,oz=v.z;
+    v.x=ox*Math.cos(ang)-oz*Math.sin(ang)+rocketGrp.position.x;
+    v.z=ox*Math.sin(ang)+oz*Math.cos(ang);
+    v.y+=rocketGrp.position.y;v.project(camera);
+    const sx=(v.x*.5+.5)*innerWidth,sy=(-v.y*.5+.5)*innerHeight,isSel=idx===selectedIdx;
+    if(v.z<1&&sx>315&&sx<innerWidth-340){
+      el.style.opacity='1';el.style.pointerEvents='auto';el.style.left=`${sx+48}px`;el.style.top=`${sy-14}px`;
+      const col=isSel?'rgba(52,211,153,0.85)':`${pt.color}66`;
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d',`M${sx} ${sy} C${sx+22} ${sy} ${sx+38} ${sy} ${sx+48} ${sy}`);
+      path.setAttribute('stroke',col);path.setAttribute('stroke-width',isSel?1.5:.8);path.setAttribute('fill','none');
+      lineOverlay.appendChild(path);
+      const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      dot.setAttribute('cx',sx);dot.setAttribute('cy',sy);dot.setAttribute('r',isSel?5:2.5);dot.setAttribute('fill',isSel?'#34d399':pt.color);
+      lineOverlay.appendChild(dot);
+      if(isSel){
+        const pulse=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        pulse.setAttribute('cx',sx);pulse.setAttribute('cy',sy);pulse.setAttribute('r',8+Math.sin(t*4)*3);
+        pulse.setAttribute('fill','none');pulse.setAttribute('stroke','#34d399');pulse.setAttribute('stroke-width','1');pulse.setAttribute('opacity','0.4');
+        lineOverlay.appendChild(pulse);
+      }
+    }else{el.style.opacity='0';el.style.pointerEvents='none';}
+  });
+  if(!document.getElementById('svg-glow')){
+    const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');defs.id='svg-glow';
+    defs.innerHTML='<filter id="glow2"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+    lineOverlay.appendChild(defs);
+  }
+  controls.update();renderer.render(scene,camera);
+}
+
+window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
+syncInputs();buildRocket();animate();
+</script>
+</body>
+</html>
