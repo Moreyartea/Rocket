@@ -76,18 +76,20 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;b
 .rh{font-size:8px;font-family:var(--mono);color:var(--accent);text-transform:uppercase;letter-spacing:.2em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
 #canvas2d{width:100%;height:215px;border-radius:7px;background:#010204;border:1px solid rgba(56,189,248,.15);display:block;cursor:crosshair}
 .canvas-info{font-size:7.5px;font-family:var(--mono);color:var(--muted);margin-top:5px;line-height:1.6}
-#line-overlay{position:fixed;inset:0;pointer-events:none;z-index:10}
+#line-overlay{position:fixed;inset:0;pointer-events:none;z-index:10;width:100%;height:100%;overflow:visible}
 #labels-c{position:fixed;inset:0;pointer-events:none;z-index:11}
 .rlbl{position:absolute;pointer-events:auto;background:rgba(5,8,18,0.92);border:1px solid rgba(56,189,248,.3);
   border-left:2px solid var(--accent);border-radius:0 7px 7px 0;padding:5px 9px;font-size:8.5px;font-family:var(--mono);
-  transition:all .25s ease;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.6);white-space:nowrap}
-.rlbl:hover,.rlbl.sel{background:rgba(56,189,248,.1);border-color:var(--accent);transform:translateX(5px);white-space:normal;max-width:210px}
+  transition:all .25s ease;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.6);white-space:nowrap;max-width:190px}
+.rlbl:hover,.rlbl.sel{background:rgba(56,189,248,.1);border-color:var(--accent);transform:translateX(3px);white-space:normal;max-width:210px}
 .rlbl.sel{border-left-color:var(--green)}
-.ln{color:#fff;font-weight:700;font-size:8.5px;text-transform:uppercase;letter-spacing:.1em}
+.ln{color:#fff;font-weight:700;font-size:8.5px;text-transform:uppercase;letter-spacing:.1em;display:flex;align-items:center;gap:5px}
 .lv{color:var(--accent);font-size:10px;font-weight:700;margin:1px 0}
 .lfx{color:var(--violet);font-size:7.5px;margin:1px 0}
 .ld{color:var(--muted);font-size:7.5px;line-height:1.4;display:none;margin-top:2px}
 .rlbl:hover .ld,.rlbl.sel .ld{display:block}
+.info-btn{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;background:rgba(14,165,233,0.2);border:1px solid rgba(14,165,233,0.5);border-radius:50%;color:#38bdf8;font-size:8px;font-weight:900;cursor:pointer;transition:all .2s;flex-shrink:0;font-family:var(--sans);line-height:1}
+.info-btn:hover{background:rgba(14,165,233,0.4);border-color:#38bdf8;transform:scale(1.15)}
 #hud{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--border);
   border-radius:10px;padding:7px 16px;display:flex;align-items:center;gap:18px;z-index:30;font-family:var(--mono);font-size:8px;
   box-shadow:0 0 30px rgba(0,0,0,.9)}
@@ -100,16 +102,19 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;b
   color:var(--green);z-index:50;opacity:0;transition:all .3s;pointer-events:none}
 #notif.show{opacity:1;transform:translateX(-50%) translateY(0)}
 #explain{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.94);
-  background:rgba(5,8,18,0.98);border:1px solid var(--violet);border-radius:13px;padding:20px;z-index:60;
-  width:370px;max-width:90vw;display:none;box-shadow:0 0 80px rgba(129,140,248,.2);font-family:var(--mono);font-size:10px;
-  transition:transform .25s ease}
-#explain.show{display:block;transform:translate(-50%,-50%) scale(1)}
-.ex-title{color:var(--violet);font-size:11px;font-weight:700;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
-.ex-close{cursor:pointer;color:var(--muted);font-size:15px;line-height:1}.ex-close:hover{color:#fff}
-.ex-formula{background:rgba(0,0,0,.5);border:1px solid rgba(129,140,248,.2);border-radius:7px;padding:11px;
-  line-height:2.1;color:#94a3b8;margin-bottom:9px}
-.ex-formula .hl{color:var(--violet);font-size:12px}.ex-formula .hl2{color:var(--accent)}
-.ex-desc{color:var(--muted);line-height:1.7;font-size:9px}
+  background:rgba(5,8,18,0.98);border:1px solid var(--violet);border-radius:14px;padding:20px;z-index:60;
+  width:400px;max-width:90vw;max-height:85vh;overflow-y:auto;display:none;
+  box-shadow:0 0 80px rgba(129,140,248,.2),0 0 40px rgba(0,0,0,.9);font-family:var(--mono);font-size:10px;
+  transition:transform .25s ease,opacity .2s ease;opacity:0}
+#explain.show{display:block;transform:translate(-50%,-50%) scale(1);opacity:1}
+.ex-title{color:var(--violet);font-size:12px;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid rgba(129,140,248,0.2)}
+.ex-close{cursor:pointer;color:var(--muted);font-size:16px;line-height:1;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:all .2s}
+.ex-close:hover{color:#fff;background:rgba(255,255,255,0.08)}
+.ex-formula{background:rgba(0,0,0,.5);border:1px solid rgba(129,140,248,.2);border-radius:8px;padding:12px;
+  line-height:2.1;color:#94a3b8;margin-bottom:10px;font-size:10px}
+.ex-formula .hl{color:var(--violet);font-size:12px}.ex-formula .hl2{color:var(--accent)}.ex-formula .hl3{color:var(--green)}
+.ex-desc{color:var(--muted);line-height:1.75;font-size:9.5px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-radius:8px;padding:10px}
+@keyframes modalIn{from{opacity:0;transform:scale(.9) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
 #reset-cam{position:fixed;bottom:12px;right:12px;z-index:30;background:var(--panel);border:1px solid var(--border);
   border-radius:8px;padding:6px 11px;font-family:var(--mono);font-size:8.5px;color:var(--muted);cursor:pointer;
   transition:all .2s;box-shadow:0 0 20px rgba(0,0,0,.8)}
@@ -118,9 +123,28 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;b
 </head>
 <body>
 <div id="grid-bg"></div>
-<svg id="line-overlay"></svg>
+<svg id="line-overlay" style="position:fixed;inset:0;pointer-events:none;z-index:10;width:100%;height:100%"></svg>
 <div id="labels-c"></div>
 <div id="notif"></div>
+
+<div id="encyclopedia-modal" style="
+  display:none;
+  position:fixed;inset:0;z-index:70;
+  align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(6px);
+" onclick="if(event.target===this)this.style.display='none'">
+  <div style="
+    width:480px;max-width:92vw;max-height:88vh;
+    background:rgba(5,8,20,0.98);
+    border:1px solid rgba(129,140,248,0.35);
+    border-radius:16px;padding:20px;
+    overflow-y:auto;
+    box-shadow:0 0 100px rgba(129,140,248,0.15),0 0 40px rgba(0,0,0,0.9);
+    animation:modalIn .25s cubic-bezier(.34,1.56,.64,1);
+  " id="encyclopedia-content">
+  </div>
+</div>
 
 <div id="explain">
   <div class="ex-title"><span id="ex-title-txt">Part Detail</span><span class="ex-close" onclick="closeExplain()">✕</span></div>
@@ -205,6 +229,23 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;b
       <table class="conv-table" id="conv-table"></table>
     </div>
   </div>
+  <button id="launchBtn" style="
+    margin-top:10px;
+    width:100%;
+    padding:8px;
+    background:linear-gradient(135deg,#16a34a,#22c55e);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    font-family:var(--sans);
+    font-weight:bold;
+    font-size:11px;
+    cursor:pointer;
+    letter-spacing:.05em;
+    box-shadow:0 0 18px rgba(34,197,94,0.3);
+    transition:all 0.2s;">
+    🚀 Launch Rocket
+  </button>
   <div style="font-size:7.5px;font-family:var(--mono);color:var(--muted);text-align:center;margin-top:7px">
     Klik label → isolate &amp; explain | Dbl-click → reset kamera
   </div>
@@ -234,15 +275,41 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;b
 </div>
 <button id="reset-cam" ondblclick="resetCamera()">⟳ Reset View (dbl-click)</button>
 
+<button id="toggle3D" style="
+  position:fixed;
+  top:12px;
+  right:330px;
+  padding:8px 15px;
+  background:linear-gradient(135deg,#0284c7,#0ea5e9);
+  color:#fff;
+  border:none;
+  border-radius:9px;
+  font-family:var(--sans);
+  font-weight:bold;
+  font-size:12px;
+  cursor:pointer;
+  z-index:100;
+  letter-spacing:.05em;
+  box-shadow:0 0 20px rgba(14,165,233,0.45),0 2px 8px rgba(0,0,0,0.4);
+  transition:all 0.2s;
+">⛶ 3D View</button>
+
 <script>
 // ══════════════════════════════════════════════════
 // 1. THREE.JS SETUP
 // ══════════════════════════════════════════════════
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x030508);
-scene.fog=new THREE.FogExp2(0x030508,0.007);
+scene.background=new THREE.Color(0x0b1220);
+scene.fog=new THREE.FogExp2(0x0b1220,0.007);
+
+const bgTexture = new THREE.TextureLoader().load(
+  'https://threejs.org/examples/textures/uv_grid_opengl.jpg'
+);
+bgTexture.mapping = THREE.EquirectangularReflectionMapping;
+scene.environment = bgTexture;
+
 const camera=new THREE.PerspectiveCamera(42,innerWidth/innerHeight,0.1,1000);
-camera.position.set(60,28,65);
+camera.position.set(45, 25, 55);
 const camInitPos=camera.position.clone();
 const renderer=new THREE.WebGLRenderer({antialias:true});
 renderer.setSize(innerWidth,innerHeight);
@@ -253,18 +320,43 @@ renderer.domElement.className='main';
 document.body.appendChild(renderer.domElement);
 const controls=new THREE.OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true;controls.dampingFactor=0.05;
-controls.target.set(20,12,0);
-const grid=new THREE.GridHelper(200,80,0x0c1220,0x070d18);
-grid.position.y=-20;scene.add(grid);
+controls.target.set(20,10,0);
+controls.enabled = false; // default: tidak bisa digerakkan
+
+const grid = new THREE.GridHelper(200, 40, 0x1e293b, 0x0ea5e9);
+grid.material.opacity = 0.25;
+grid.material.transparent = true;
+grid.position.y=-20;
+scene.add(grid);
+
 scene.add(new THREE.AmbientLight(0xffffff,0.35));
 const keyL=new THREE.DirectionalLight(0xffffff,2.0);
 keyL.position.set(50,80,50);keyL.castShadow=true;
 keyL.shadow.mapSize.set(2048,2048);scene.add(keyL);
 const rimL=new THREE.PointLight(0x38bdf8,9,200);rimL.position.set(-45,35,-45);scene.add(rimL);
 const fillL=new THREE.PointLight(0x818cf8,4,150);fillL.position.set(40,-5,-55);scene.add(fillL);
-const engGlow=new THREE.PointLight(0xfb923c,0,30);scene.add(engGlow);
-function resetCamera(){camera.position.copy(camInitPos);controls.target.set(20,12,0);}
+const engGlow=new THREE.PointLight(0xfb923c,2,60);scene.add(engGlow);
+function resetCamera(){camera.position.copy(camInitPos);controls.target.set(20,10,0);}
 renderer.domElement.addEventListener('dblclick',resetCamera);
+
+document.getElementById("toggle3D").addEventListener("click", () => {
+  is3DMode = !is3DMode;
+  if(is3DMode){
+    controls.enabled = true;
+    document.getElementById("toggle3D").innerText = "⬅ Exit 3D";
+    document.querySelectorAll('.rlbl').forEach(l=>l.style.display="none");
+    leaderLines.forEach(l=>l.visible=false);
+    document.getElementById("info-panel").style.display = "none";
+  } else {
+    controls.enabled = false;
+    camera.position.set(45, 25, 55);
+    controls.target.set(20, 10, 0);
+    controls.update();
+    document.getElementById("toggle3D").innerText = "⛶ 3D View";
+    document.querySelectorAll('.rlbl').forEach(l=>l.style.display="block");
+    leaderLines.forEach(l=>l.visible=true);
+  }
+});
 
 // ══════════════════════════════════════════════════
 // 2. GLOBALS
@@ -272,9 +364,168 @@ renderer.domElement.addEventListener('dblclick',resetCamera);
 const rocketGrp=new THREE.Group();scene.add(rocketGrp);
 let labelData=[],liquidMeshes=[],sliceMeshes=[],allPartMeshes=[];
 let selectedIdx=null,currentMethod='disk',currentR=3.0,currentH=18.0;
+let isLaunching = false;
+let velocity = 0;
+let flame, smoke;
 const lineOverlay=document.getElementById('line-overlay');
 const canvas2d=document.getElementById('canvas2d');
+let is3DMode = false;
 const ctx2d=canvas2d.getContext('2d');
+let hoverX = null;
+let zoomLevel = 1;
+let offsetX = 0;
+let lastR = currentR;
+let lastH = currentH;
+
+const partInfo = {
+  lox: {
+    title: "🧊 Oxidizer Tank (LOX)",
+    icon: "🧊",
+    color: "#38bdf8",
+    subtitle: "Liquid Oxygen — Cryogenic Oxidizer",
+    formula: "f(x) = r·(1−0.04·x/h)·0.94",
+    sections: [
+      { label: "Fungsi", content: "Menyimpan Oksigen Cair (Liquid Oxygen / LOX) sebagai oksidator untuk proses pembakaran di ruang bakar mesin roket." },
+      { label: "Suhu Operasi", content: "T ≈ −183°C (90 K) — LOX disimpan dalam kondisi kriogenik. Isolasi termal berlapis diperlukan untuk mencegah penguapan (boil-off)." },
+      { label: "Tekanan", content: "P ≈ 1.5–3.0 bar (tekanan tangki). Pressurized dengan gas helium untuk mendorong propellant ke mesin." },
+      { label: "Persamaan Volume", content: "V_LOX = π ∫[a→b] [f(x)]² dx\nDengan f(x) = profil radius silindris yang sedikit meruncing ke atas." },
+      { label: "Rasio Campuran", content: "LOX : RP-1 ≈ 2.77 : 1 (massa). Setiap kg bahan bakar membutuhkan ~2.77 kg LOX untuk pembakaran sempurna." },
+      { label: "Material Tangki", content: "Aluminium-Lithium alloy (Al-Li 2195) untuk kekuatan tinggi dengan bobot ringan. Tangki merupakan bagian struktural roket (monocoque)." },
+      { label: "Fakta Menarik", content: "LOX berwarna biru pucat saat dalam fase cair. SLS Artemis membawa ±740,000 kg LOX untuk misi ke bulan." }
+    ]
+  },
+  fuel: {
+    title: "🔥 Fuel Tank (RP-1)",
+    icon: "🔥",
+    color: "#fb923c",
+    subtitle: "Refined Petroleum-1 — Rocket Kerosene",
+    formula: "V = π ∫[a→b] (R²−r²) dx — Washer Method",
+    sections: [
+      { label: "Fungsi", content: "Menyimpan RP-1 (Refined Petroleum-1), yaitu bahan bakar berbasis kerosen yang dimurnikan khusus untuk roket. Digunakan bersama LOX sebagai propelan bipropellant." },
+      { label: "Sifat Fisik", content: "Densitas ≈ 810 kg/m³. Titik didih ≈ 150–275°C. Viskositas rendah untuk pompa turbo. Tidak kriogenik — disimpan pada suhu kamar." },
+      { label: "Metode Washer", content: "Tangki fuel memiliki pipa oksidator (LOX feed line) di tengahnya → penampang berbentuk annular (cincin). Karenanya volume dihitung dengan Washer Method:\nV = π∫(R²−r²)dx" },
+      { label: "Impuls Spesifik", content: "LOX/RP-1 menghasilkan Isp ≈ 311 s (sea level) hingga 363 s (vakum). Lebih rendah dari LH2, namun densitas energi lebih tinggi → tangki lebih kecil." },
+      { label: "Kelebihan RP-1", content: "Tidak eksplosif pada suhu kamar, tidak kriogenik (mudah disimpan), densitas tinggi (tangki kompak), biaya rendah dibanding LH2." },
+      { label: "Fakta", content: "Mesin RS-25 dan RD-180 menggunakan LOX/RP-1. SpaceX Merlin (Falcon 9) juga menggunakan RP-1 + LOX." }
+    ]
+  },
+  booster: {
+    title: "⚡ Solid Rocket Booster (SRB)",
+    icon: "⚡",
+    color: "#f1f5f9",
+    subtitle: "2× Solid Propellant Strap-on Boosters",
+    formula: "f(x) = srbR·profil(x/h) — piecewise",
+    sections: [
+      { label: "Fungsi", content: "SRB memberikan dorongan masif saat take-off. Pada SLS Artemis, 2 SRB memberikan ±75% total thrust di detik-detik awal peluncuran." },
+      { label: "Jenis Propelan", content: "APCP (Ammonium Perchlorate Composite Propellant): NH₄ClO₄ (oksidator 69%) + Al (bahan bakar 16%) + HTPB (pengikat) + aditif." },
+      { label: "Karakteristik", content: "Thrust (masing-masing): ±15 MN (sea level)\nIsp ≈ 269 s (jauh lebih rendah dari cair)\nBurn time ≈ 126 detik\nTidak dapat dimatikan setelah dinyalakan!" },
+      { label: "Profil Geometri", content: "Tabung panjang dengan ujung meruncing. Profilnya modeled sebagai fungsi piecewise:\n• Bagian bawah: ekspansi kerucut\n• Tengah: silinder konstan\n• Atas: dome hemispheroid" },
+      { label: "Pemisahan", content: "Setelah propellant habis (±T+126s), SRB dipisahkan oleh pyrotechnic bolt-cutter dan parachute deployment untuk recovery (pada Space Shuttle)." },
+      { label: "SLS vs Space Shuttle", content: "SLS SRB (RSRM-V) lebih panjang dari Shuttle SRB. Setiap SRB SLS = 5 segmen solid propellant vs 4 segmen pada Shuttle." }
+    ]
+  },
+  payload: {
+    title: "🛸 Payload / Capsule",
+    icon: "🛸",
+    color: "#818cf8",
+    subtitle: "Mission-specific payload module",
+    formula: "f(x) = 0.97r·√(1−(x/h)²·0.55) — Ogive",
+    sections: [
+      { label: "Orion Capsule", content: "Kapsul awak berbentuk ogive (setengah elipsoid). Menampung 4–6 astronot. Dirancang untuk kecepatan re-entry hingga 11 km/s dari misi bulan." },
+      { label: "Service Module", content: "Menyediakan listrik (panel surya), air, oksigen, dan sistem propulsi manuver orbital. Volume dihitung sebagai silinder dengan sedikit taper." },
+      { label: "Heat Shield", content: "Pelindung panas Avcoat 2.0 pada bagian bawah kapsul. Mampu menahan suhu >2760°C saat atmosferic entry." },
+      { label: "Payload Fairing (Cargo)", content: "Tutup aerodinamis berbentuk parabola untuk melindungi satelit saat menembus atmosfer. f(x) = fR·(1−t²) — sesuai metode Disk." },
+      { label: "Science Module (Hybrid)", content: "Modul hemispheroid untuk misi antarplanet. Berisi sensor radar, kamera resolusi tinggi, dan spektrometer untuk eksplorasi." },
+      { label: "Integral Volume", content: "Capsule → profil ellipsoidal:\nV = π∫[0→h] [a√(1−(x/h)²·c)]² dx\n= π·a²·h·∫₀¹(1−ct²)dt" }
+    ]
+  },
+  engine: {
+    title: "🚀 Engine Nozzle Cluster",
+    icon: "🚀",
+    color: "#94a3b8",
+    subtitle: "RS-25 / Merlin — Bell Nozzle Geometry",
+    formula: "f(x) = r·(0.9+0.12·(1−x/h)) — Bell curve",
+    sections: [
+      { label: "Tipe Mesin", content: "RS-25 (Space Shuttle Main Engine yang dimodifikasi). Menggunakan siklus staged-combustion dengan turbo-pump untuk efisiensi maksimal." },
+      { label: "Profil Nosel Bell", content: "Nosel berbentuk bell (lonceng) untuk mengekspansi gas pembakaran secara optimal. f(x) = r·(0.9+0.12·(1−x/h)) memodelkan profil divergen ini." },
+      { label: "Performa", content: "Thrust per mesin ≈ 1.86 MN (vakum)\nIsp ≈ 452 s (vakum) — salah satu tertinggi!\nRasio ekspansi nozzle: 69:1\nTemperatur ruang bakar: ≈3300°C" },
+      { label: "Jumlah Mesin", content: "SLS Artemis: 4 mesin RS-25 di core stage\nTitan Heavy / Cargo: 5 mesin Merlin\nArranged dalam pola melingkar untuk distribusi thrust merata." },
+      { label: "Cooling", content: "Regenerative cooling: bahan bakar dingin dialirkan melalui dinding nosel sebelum masuk ruang bakar — mendinginkan nosel sekaligus memanaskan propelan." },
+      { label: "Volume Integral", content: "V_engine = π·n·∫[0→h] [f(x)]² dx\nDengan n = jumlah mesin. Metode Shell:\nV = 2π·n·∫ x·f(x) dx (rotasi terhadap sumbu-y)" }
+    ]
+  }
+};
+
+let leaderLines = [];
+
+function showInfo(key){
+  const info = partInfo[key];
+  if(!info) return;
+  
+  const modal = document.getElementById('encyclopedia-modal');
+  const content = document.getElementById('encyclopedia-content');
+  
+  content.innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.08)">
+      <div style="width:44px;height:44px;background:linear-gradient(135deg,${info.color}22,${info.color}44);border:1px solid ${info.color}55;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${info.icon}</div>
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#fff;font-family:var(--sans)">${info.title}</div>
+        <div style="font-size:9px;font-family:var(--mono);color:${info.color};letter-spacing:.1em;margin-top:2px">${info.subtitle}</div>
+      </div>
+      <button onclick="document.getElementById('encyclopedia-modal').style.display='none'" style="margin-left:auto;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:4px;transition:color .2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='var(--muted)'">✕</button>
+    </div>
+    
+    <div style="background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:10px;margin-bottom:14px;font-family:var(--mono);font-size:9.5px;color:${info.color}">
+      <span style="color:var(--muted);font-size:8px;letter-spacing:.15em;text-transform:uppercase">Formula</span><br>
+      <span style="font-weight:700;font-size:10px">${info.formula}</span>
+    </div>
+    
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${info.sections.map((s,i)=>`
+        <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);border-left:2px solid ${info.color}${i===0?'':'55'};border-radius:0 8px 8px 0;padding:9px 11px">
+          <div style="font-size:8px;font-family:var(--mono);color:${info.color};text-transform:uppercase;letter-spacing:.15em;margin-bottom:4px">${s.label}</div>
+          <div style="font-size:10px;font-family:var(--mono);color:#94a3b8;line-height:1.65;white-space:pre-line">${s.content}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  
+  modal.style.display = 'flex';
+}
+
+function drawLeaderLine(start, end){
+  const material = new THREE.LineBasicMaterial({ color: 0x38bdf8, depthTest: false, transparent: true });
+  const points = [];
+  points.push(start);
+  points.push(end);
+  const geometry = new THREE.BufferGeometry().setFromPoints(points);
+  const line = new THREE.Line(geometry, material);
+  line.renderOrder = 999;
+  return line;
+}
+
+function toScreenPosition(obj, camera) {
+  const vector = new THREE.Vector3();
+  obj.updateWorldMatrix(true, false);
+  vector.setFromMatrixPosition(obj.matrixWorld);
+  vector.project(camera);
+  return {
+    x: (vector.x * 0.5 + 0.5) * window.innerWidth,
+    y: (-vector.y * 0.5 + 0.5) * window.innerHeight
+  };
+}
+
+function updateLine(line, start, end){
+  const points = [
+    new THREE.Vector3(
+      (start.x / window.innerWidth)*2 -1, -(start.y / window.innerHeight)*2 +1, 0.5
+    ).unproject(camera),
+    new THREE.Vector3(
+      (end.x / window.innerWidth)*2 -1, -(end.y / window.innerHeight)*2 +1, 0.5
+    ).unproject(camera)
+  ];
+  line.geometry.setFromPoints(points);
+}
 
 // ══════════════════════════════════════════════════
 // 3. SINGLE SOURCE OF TRUTH: getSections(r,h)
@@ -486,6 +737,15 @@ function buildRocket(){
   rocketGrp.position.set(14+r*2.2,-h*.5+2,0);
   controls.target.set(14+r*2.2,h*.3,0);
   engGlow.position.set(14+r*2.2,-6,0);
+
+  // Auto-adjust camera distance when rocket changes size
+  // Base distance at r=3, h=18 is ~72 units
+  const rocketScale = Math.max(r/3.0, h/18.0);
+  const targetDist = 72 * Math.max(1, rocketScale * 0.95);
+  const camDir = camera.position.clone().sub(controls.target).normalize();
+  const newCamPos = controls.target.clone().add(camDir.multiplyScalar(targetDist));
+  // Smoothly lerp camera position
+  camera.position.lerp(newCamPos, 0.15);
   const sec=getSections(r,h);
 
   // ── OUTER SHELL (all sections → one LatheGeometry) ──
@@ -511,7 +771,7 @@ function buildRocket(){
   loxMesh.position.y=lox.a;loxMesh.userData={sk:'lox'};
   rocketGrp.add(loxMesh);liquidMeshes.push(loxMesh);allPartMeshes.push(loxMesh);
   const loxInt=integrate(lox.fn,lox.a,lox.b,n,currentMethod);
-  labelData.push({name:'LOX Tank',vol:loxInt.V,
+  labelData.push({name:'Oxidizer Tank',vol:loxInt.V, key:'lox',
     formulaStr:lox.formulaStr,
     domainStr:`x ∈ [${lox.a.toFixed(2)}, ${lox.b.toFixed(2)}]`,
     integralStr:lox.integralStr||`V = π∫[${lox.a.toFixed(1)}→${lox.b.toFixed(1)}] [f(x)]² dx`,
@@ -525,7 +785,7 @@ function buildRocket(){
   fuelMesh.position.y=fuel.a;fuelMesh.userData={sk:'fuel'};
   rocketGrp.add(fuelMesh);liquidMeshes.push(fuelMesh);allPartMeshes.push(fuelMesh);
   const fuelInt=currentMethod==='washer'?riemannWasher(fuel.fn,fuelInner,fuel.a,fuel.b,n):integrate(fuel.fn,fuel.a,fuel.b,n,currentMethod);
-  labelData.push({name:'RP-1 Fuel',vol:fuelInt.V,
+  labelData.push({name:'Fuel Tank',vol:fuelInt.V, key:'fuel',
     formulaStr:fuel.formulaStr,
     domainStr:`x ∈ [${fuel.a.toFixed(2)}, ${fuel.b.toFixed(2)}]`,
     integralStr:currentMethod==='washer'?`V = π∫[${fuel.a.toFixed(1)}→${fuel.b.toFixed(1)}] (R²−r²) dx`:fuel.integralStr||`V = π∫... dx`,
@@ -543,7 +803,7 @@ function buildRocket(){
   }
   const engFn=(x)=>r*(.9+.12*(1-x/engH));
   const engVol=currentMethod==='shell'?riemannShell(engFn,0,engH,n):riemannDisk(engFn,0,engH,n);
-  labelData.push({name:`Engine RS-25 ×${nCnt}`,vol:engVol.V*nCnt,
+  labelData.push({name:`Engine`,vol:engVol.V*nCnt, key:'engine',
     formulaStr:`f(x) = r·(0.9+0.12·(1−x/${engH.toFixed(1)}))`,
     domainStr:`x ∈ [0, ${engH.toFixed(2)}]`,
     integralStr:currentMethod==='shell'?`V = 2π·${nCnt}·∫ x·f(x) dx`:`V = π·${nCnt}·∫ [f(x)]² dx`,
@@ -565,7 +825,7 @@ function buildRocket(){
         new THREE.MeshPhysicalMaterial({color:0xf1f5f9,metalness:.3,roughness:.5}));
       srb.position.set(sd*(r+srbR+.55),0,0);rocketGrp.add(srb);allPartMeshes.push(srb);
     }
-    labelData.push({name:'SRB ×2',vol:srbVol.V*2,
+    labelData.push({name:'Booster',vol:srbVol.V*2, key:'booster',
       formulaStr:`f(x) = srbR·profil(x/${srbH.toFixed(1)})`,
       domainStr:`x ∈ [0, ${srbH.toFixed(2)}]`,
       integralStr:`V = 2·π∫[0→${srbH.toFixed(1)}] [f(x)]² dx`,
@@ -578,13 +838,13 @@ function buildRocket(){
   if(mode==='crew'){
     const d=buildCrew(r,h);rocketGrp.add(d.grp);payloadVol=d.vol;
     allPartMeshes.push(d.sm,d.cap);
-    labelData.push({name:'Orion Capsule',vol:d.capV,
+    labelData.push({name:'Orion Capsule',vol:d.capV, key:'payload',
       formulaStr:`f(x) = 0.97r·√(1−(x/${d.capH.toFixed(1)})²·0.55)`,
       domainStr:`x ∈ [0, ${d.capH.toFixed(2)}]`,
       integralStr:`V = π∫[0→${d.capH.toFixed(1)}] [0.97r·√(1−...)]² dx`,
       desc:`Kapsul Orion — bentuk ogive\n${Math.min(6,2+Math.floor(r*.8))} astronot di dalam kapsul`,
       pos:new THREE.Vector3(r,h+d.smH+d.capH*.5,0),mesh:d.cap,color:'#94a3b8',steps:[]});
-    labelData.push({name:'Service Module',vol:d.smV,
+    labelData.push({name:'Service Module',vol:d.smV, key:'payload',
       formulaStr:`f(x) = r·(1−0.02·x/${d.smH.toFixed(1)})`,
       domainStr:`x ∈ [0, ${d.smH.toFixed(2)}]`,
       integralStr:`V = π∫[0→${d.smH.toFixed(1)}] [f(x)]² dx`,
@@ -592,15 +852,15 @@ function buildRocket(){
       pos:new THREE.Vector3(r,h+d.smH*.5,0),mesh:d.sm,color:'#64748b',steps:[]});
   } else if(mode==='cargo'){
     const d=buildCargo(r,h);rocketGrp.add(d.grp);payloadVol=d.vol;
-    labelData.push({name:'Payload Fairing',vol:d.vol,
+    labelData.push({name:'Payload Fairing',vol:d.vol, key:'payload',
       formulaStr:`f(x) = ${d.fR.toFixed(1)}·(1−(x/${d.fH.toFixed(1)})²)`,
       domainStr:`x ∈ [0, ${d.fH.toFixed(2)}]`,
       integralStr:`V = π∫[0→${d.fH.toFixed(1)}] [fR·(1−t²)]² dx = π·fR²·h·(8/15)`,
       desc:'Perisai muatan parabola\nSatelit di dalam fairing',
-      pos:new THREE.Vector3(d.fR,h+d.fH*.4,0),mesh:null,color:'#fafafa',steps:[]});
+      pos:new THREE.Vector3(d.fR,h+d.fH*.4,0),mesh:d.fair,color:'#fafafa',steps:[]});
   } else {
     const d=buildHybrid(r,h);rocketGrp.add(d.grp);payloadVol=d.vol;
-    labelData.push({name:'Science Module',vol:d.vol,
+    labelData.push({name:'Science Module',vol:d.vol, key:'payload',
       formulaStr:`f(x) = 0.82r·√(1−(x/${d.hH.toFixed(1)})²)`,
       domainStr:`x ∈ [0, ${d.hH.toFixed(2)}]`,
       integralStr:`V = π∫[0→${d.hH.toFixed(1)}] [0.82r·√(1−t²)]² dx = (2/3)π(0.82r)²h`,
@@ -608,12 +868,50 @@ function buildRocket(){
       pos:new THREE.Vector3(r,h+d.hH*.4,0),mesh:d.head,color:'#d1d5db',steps:[]});
   }
 
+  flame = new THREE.Mesh(
+    new THREE.ConeGeometry(r*0.6, r*1.8, 16),
+    new THREE.MeshBasicMaterial({color:0xff4500, transparent:true})
+  );
+  flame.position.y = -h*0.12;
+  flame.rotation.x = Math.PI; // Balik kerucut ke bawah
+  rocketGrp.add(flame);
+  flame.visible = false;
+
+  smoke = new THREE.Mesh(
+    new THREE.SphereGeometry(r*0.5, 16, 16),
+    new THREE.MeshBasicMaterial({color:0x888888, transparent:true, opacity:0.2})
+  );
+  smoke.position.y = -h*0.2;
+  rocketGrp.add(smoke);
+  smoke.visible = false;
+
   buildSlices(sec,n,currentMethod);
   updateStats(r,h,mode,loxInt.V,fuelInt.V,payloadVol,n);
   updateLabelsDOM();
   updateRiemannTable(labelData[0].steps);
   updateConvTable(sec.lox.fn,sec.lox.a,sec.lox.b,n);
   updateFormulaPanel(r,h);
+
+  leaderLines.forEach(l => scene.remove(l));
+  leaderLines = [];
+  // We use SVG lines in the animate loop instead of Three.js lines
+  // labelData.forEach(pt => {
+  //   const line = drawLeaderLine(new THREE.Vector3(), new THREE.Vector3());
+  //   if(is3DMode) line.visible = false;
+  //   scene.add(line);
+  //   leaderLines.push(line);
+  // });
+
+  if (Math.abs(lastR - currentR) > 0.01 || Math.abs(lastH - currentH) > 0.01) {
+    for(let i=0;i<8;i++){
+      setTimeout(()=>{
+        drawCanvas(getSections(currentR, currentH), parseInt(document.getElementById('nSlices').value));
+      }, i*15);
+    }
+  }
+  lastR = currentR;
+  lastH = currentH;
+
   drawCanvas(sec,n);
   updatePiecewiseDisplay(r,h);
   updateIntegralGlobal(r,h);
@@ -637,28 +935,71 @@ function drawCanvas(sec,n){
   ctx2d.fillStyle='rgba(56,189,248,0.7)';ctx2d.font='8px JetBrains Mono,monospace';
   ctx2d.fillText('x (m)',P.l+pw-22,P.t+ph+18);
   ctx2d.save();ctx2d.translate(10,P.t+ph/2);ctx2d.rotate(-Math.PI/2);ctx2d.fillText('f(x)',-14,0);ctx2d.restore();
-  const sx=(x)=>P.l+(x/h)*pw,sy=(y)=>P.t+ph-(y/(r*1.15))*ph;
+  const sx = (x)=>{
+    return P.l + ((x / h) * pw - offsetX) * zoomLevel;
+  };
+  let maxY = 0;
+  ['skirt','lox','fuel','transition','nose'].forEach(k=>{
+    const s = sec[k];
+    for(let i=0;i<=50;i++){
+      const x = s.a + (i/50)*(s.b - s.a);
+      maxY = Math.max(maxY, s.fn(x));
+    }
+  });
+  const sy = (y)=>P.t + ph - (y / maxY) * ph;
   const sColors={skirt:'#64748b',lox:'#38bdf8',fuel:'#fb923c',transition:'#1e293b',nose:'#e2e8f0'};
   // Riemann rects (LOX section)
   const lox=sec.lox,dx=(lox.b-lox.a)/n,method=currentMethod;
   for(let i=0;i<n;i++){
     const x0=lox.a+i*dx,xc=x0+dx/2,ri=lox.fn(xc),x1=x0+dx;
     const sx0=sx(x0),sx1=sx(x1),sy0=sy(ri),syB=sy(0),al=0.16+(i%2)*.1;
-    if(method==='disk'){ctx2d.fillStyle=`rgba(129,140,248,${al})`;ctx2d.strokeStyle='rgba(129,140,248,0.5)';}
-    else if(method==='washer'){ctx2d.fillStyle=`rgba(251,146,60,${al})`;ctx2d.strokeStyle='rgba(251,146,60,0.5)';}
-    else{ctx2d.fillStyle=`rgba(52,211,153,${al})`;ctx2d.strokeStyle='rgba(52,211,153,0.5)';}
-    ctx2d.lineWidth=.6;ctx2d.fillRect(sx0,sy0,sx1-sx0,syB-sy0);ctx2d.strokeRect(sx0,sy0,sx1-sx0,syB-sy0);
-    if(method==='washer'){const rI=ri*.16,syI=sy(rI);ctx2d.fillStyle='rgba(2,4,10,0.75)';ctx2d.fillRect(sx0,syI,sx1-sx0,syB-syI);}
+    ctx2d.lineWidth=.6;
+    if(method==='disk'){
+      ctx2d.fillStyle = `rgba(129,140,248,${al})`;
+      ctx2d.strokeStyle='rgba(129,140,248,0.5)';
+      ctx2d.fillRect(sx0, sy0, sx1-sx0, syB-sy0);
+      ctx2d.strokeRect(sx0,sy0,sx1-sx0,syB-sy0);
+    }
+    else if(method==='washer'){
+      ctx2d.fillStyle = `rgba(251,146,60,${al})`;
+      ctx2d.strokeStyle='rgba(251,146,60,0.5)';
+      ctx2d.fillRect(sx0, sy0, sx1-sx0, syB-sy0);
+      ctx2d.strokeRect(sx0,sy0,sx1-sx0,syB-sy0);
+
+      // lubang tengah
+      const inner = ri * 0.16;
+      const syI = sy(inner);
+      ctx2d.fillStyle = '#010204';
+      ctx2d.fillRect(sx0, syI, sx1-sx0, syB-syI);
+    }
+    else if(method==='shell'){
+      ctx2d.strokeStyle = `rgba(52,211,153,0.8)`;
+      ctx2d.beginPath();
+      ctx2d.moveTo(sx(xc), sy(0));
+      ctx2d.lineTo(sx(xc), sy(ri));
+      ctx2d.stroke();
+    }
   }
   // Curve fill
-  ctx2d.beginPath();ctx2d.moveTo(sx(0),sy(0));
+  ctx2d.beginPath();
+  ctx2d.moveTo(sx(0), sy(0));
+
   ['skirt','lox','fuel','transition','nose'].forEach(k=>{
-    const s=sec[k];for(let i=0;i<=30;i++){const x=s.a+(i/30)*(s.b-s.a);ctx2d.lineTo(sx(x),sy(s.fn(x)));}
+    const s = sec[k];
+    for(let i=0;i<=60;i++){
+      const x = s.a + (i/60)*(s.b - s.a);
+      ctx2d.lineTo(sx(x), sy(s.fn(x)));
+    }
   });
-  ctx2d.lineTo(sx(h),sy(0));ctx2d.closePath();ctx2d.fillStyle='rgba(56,189,248,0.05)';ctx2d.fill();
+
+  ctx2d.lineTo(sx(h), sy(0));
+  ctx2d.closePath();
+
+  ctx2d.fillStyle = 'rgba(56,189,248,0.12)';
+  ctx2d.fill();
   // Curves
   ['skirt','lox','fuel','transition','nose'].forEach(k=>{
-    const s=sec[k];ctx2d.strokeStyle=sColors[k];ctx2d.lineWidth=1.7;ctx2d.setLineDash([]);
+    const s=sec[k];ctx2d.strokeStyle=sColors[k];ctx2d.lineWidth=2.5;ctx2d.setLineDash([]);
     ctx2d.beginPath();let fst=true;
     for(let i=0;i<=50;i++){const x=s.a+(i/50)*(s.b-s.a);
       if(fst){ctx2d.moveTo(sx(x),sy(s.fn(x)));fst=false;}else ctx2d.lineTo(sx(x),sy(s.fn(x)));}
@@ -679,22 +1020,68 @@ function drawCanvas(sec,n){
   ctx2d.fillText(mLbls[method],P.l+pw-88,P.t-8);
   ctx2d.fillStyle='rgba(56,189,248,0.65)';ctx2d.font='8px JetBrains Mono,monospace';
   ctx2d.fillText('f(x) = profil radius roket',P.l+2,P.t-8);
+
+  if (hoverX !== null && hoverX >= 0 && hoverX <= h) {
+    let fx = 0;
+    for (const k of ['skirt','lox','fuel','transition','nose']) {
+      const s = sec[k];
+      if (hoverX >= s.a && hoverX <= s.b) {
+        fx = s.fn(hoverX);
+        break;
+      }
+    }
+
+    const xCanvas = sx(hoverX);
+    const yCanvas = sy(fx);
+
+    // garis vertikal
+    ctx2d.strokeStyle = '#f87171';
+    ctx2d.lineWidth = 1;
+    ctx2d.setLineDash([4,4]);
+    ctx2d.beginPath();
+    ctx2d.moveTo(xCanvas, sy(0));
+    ctx2d.lineTo(xCanvas, yCanvas);
+    ctx2d.stroke();
+    ctx2d.setLineDash([]);
+
+    // titik di kurva
+    ctx2d.beginPath();
+    ctx2d.arc(xCanvas, yCanvas, 4, 0, Math.PI*2);
+    ctx2d.fillStyle = '#f87171';
+    ctx2d.fill();
+
+    // label nilai
+    ctx2d.fillStyle = '#f87171';
+    ctx2d.font = '10px JetBrains Mono';
+    ctx2d.fillText(`f(x)=${fx.toFixed(2)}`, xCanvas+6, yCanvas-6);
+  }
 }
 
-canvas2d.addEventListener('mousemove',e=>{
-  const rect=canvas2d.getBoundingClientRect();
-  const mx=(e.clientX-rect.left)*(canvas2d.width/rect.width);
-  const h=currentH,r=currentR,P={l:36,r:16,t:26,b:30};
-  const pw=canvas2d.width-P.l-P.r;
-  const x=((mx-P.l)/pw)*h;
-  if(x<0||x>h)return;
-  const sec=getSections(r,h);
-  let fx=0;
-  for(const k of['skirt','lox','fuel','transition','nose']){
-    const s=sec[k];if(x>=s.a&&x<=s.b){fx=s.fn(x);break;}
+canvas2d.addEventListener('wheel', (e) => {
+  e.preventDefault();
+
+  const zoomFactor = 0.1;
+  if (e.deltaY < 0) {
+    zoomLevel *= (1 + zoomFactor);
+  } else {
+    zoomLevel *= (1 - zoomFactor);
   }
-  document.getElementById('canvas-info').textContent=
-    `x=${x.toFixed(2)}m | f(x)=${fx.toFixed(3)}m | [f(x)]²=${(fx*fx).toFixed(4)}m² | dV=π·${(fx*fx).toFixed(3)}·Δx`;
+
+  zoomLevel = Math.max(1, Math.min(5, zoomLevel));
+
+  drawCanvas(getSections(currentR, currentH), parseInt(document.getElementById('nSlices').value));
+});
+
+canvas2d.addEventListener('mousemove', e=>{
+  const rect = canvas2d.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (canvas2d.width / rect.width);
+
+  const P={l:36,r:16,t:26,b:30};
+  const pw=canvas2d.width-P.l-P.r;
+
+  hoverX = ((mx - P.l) / (pw * zoomLevel) + offsetX/pw) * currentH;
+
+  drawCanvas(getSections(currentR, currentH), parseInt(document.getElementById('nSlices').value));
 });
 
 // ══════════════════════════════════════════════════
@@ -815,7 +1202,10 @@ function updateLabelsDOM(){
   const c=document.getElementById('labels-c');c.innerHTML='';
   labelData.forEach((pt,i)=>{
     const d=document.createElement('div');d.className='rlbl';d.id=`lbl-${i}`;
-    d.innerHTML=`<div class="ln" style="color:${pt.color}">${pt.name}</div>
+    d.innerHTML=`<div class="ln" style="color:${pt.color}">
+      ${pt.name}
+      ${pt.key ? `<span onclick="event.stopPropagation(); showInfo('${pt.key}')" class="info-btn" title="Encyclopedia">i</span>` : ''}
+      </div>
       <div class="lv">V = ${pt.vol.toFixed(3)} m³</div>
       <div class="lfx">${pt.formulaStr}</div>
       <div class="ld">${pt.domainStr}<br>${pt.integralStr}<br><br>${(pt.desc||'').replace(/\n/g,'<br>')}</div>`;
@@ -890,6 +1280,17 @@ function syncInputs(){
   hN.addEventListener('input',()=>{let v=parseFloat(hN.value);if(isNaN(v))return;v=Math.min(35,Math.max(12,v));hS.value=v;buildRocket();});
   document.getElementById('mode').addEventListener('change',buildRocket);
   document.getElementById('nSlices').addEventListener('input',buildRocket);
+  document.getElementById("launchBtn").addEventListener("click", ()=>{
+    isLaunching = true;
+    velocity = 0.15;
+    if(smoke){
+      smoke.scale.set(1,1,1);
+      smoke.material.opacity = 0.2;
+    }
+    if(flame){
+      flame.material.opacity = 1;
+    }
+  });
 }
 
 // ══════════════════════════════════════════════════
@@ -898,43 +1299,180 @@ function syncInputs(){
 function animate(){
   requestAnimationFrame(animate);
   const t=Date.now()*.001;
-  rocketGrp.rotation.y+=.0013;
+
+  if(isLaunching){
+    // akselerasi smooth (ease-in)
+    velocity += 0.004;
+
+    // gerakan roket
+    rocketGrp.position.y += velocity;
+
+    // sedikit tilt realistis
+    rocketGrp.rotation.z = Math.sin(Date.now()*0.003)*0.01;
+
+    // kamera cinematic follow
+    camera.position.y += velocity * 0.7;
+    camera.position.x += Math.sin(Date.now()*0.001)*0.02;
+
+    // zoom out pelan (dramatic scale)
+    camera.position.z += velocity * 0.2;
+    
+    if(flame) {
+      flame.visible = true;
+      const pulse = Math.sin(Date.now()*0.02)*0.3;
+      flame.scale.y = 1.2 + pulse;
+      flame.scale.x = 1 + pulse*0.3;
+      flame.scale.z = 1 + pulse*0.3;
+    }
+
+    if(smoke) {
+      smoke.visible = true;
+      smoke.scale.x += 0.02;
+      smoke.scale.y += 0.01;
+      smoke.scale.z += 0.02;
+      smoke.material.opacity *= 0.98;
+    }
+
+    if(rocketGrp.position.y > 100 && flame) {
+      flame.material.opacity *= 0.95;
+    }
+
+    if(rocketGrp.position.y > 180){
+      isLaunching = false;
+      rocketGrp.position.set(14+currentR*2.2, -currentH*.5+2, 0);
+      rocketGrp.rotation.z = 0;
+      // Reset camera to a good position for current rocket size
+      const rocketScale = Math.max(currentR/3.0, currentH/18.0);
+      const dist = 72 * Math.max(1, rocketScale * 0.95);
+      camera.position.set(45 * (dist/72), 25 * (dist/72), 55 * (dist/72));
+      controls.target.set(14+currentR*2.2, currentH*0.3, 0);
+    }
+  } else {
+    if(is3DMode) {
+      // rocketGrp.rotation.y += 0.001; // Opsional: uncomment ini agar roket berputar lambat saat di dalam 3D Mode
+    }
+    if(flame) flame.visible = false;
+    if(smoke) smoke.visible = false;
+  }
+
   liquidMeshes.forEach((m,i)=>{if(!m)return;m.rotation.x=Math.sin(t*1.7+i)*.027;m.rotation.z=Math.cos(t*1.3+i)*.027;});
   sliceMeshes.forEach((m,i)=>{if(m&&m.material&&m.material.transparent)m.material.opacity=.04+.04*Math.sin(t*1.8+i*.25);});
   rimL.intensity=7+Math.sin(t*1.6)*2.5;
-  engGlow.intensity=1.2+Math.sin(t*11)*.9;
+  engGlow.intensity = 2 + Math.sin(Date.now()*0.02)*1.5;
   // Lines
   lineOverlay.innerHTML='';
-  labelData.forEach((pt,idx)=>{
-    const el=document.getElementById(`lbl-${idx}`);if(!el)return;
-    const v=pt.pos.clone(),ang=rocketGrp.rotation.y,ox=v.x,oz=v.z;
-    v.x=ox*Math.cos(ang)-oz*Math.sin(ang)+rocketGrp.position.x;
-    v.z=ox*Math.sin(ang)+oz*Math.cos(ang);
-    v.y+=rocketGrp.position.y;v.project(camera);
-    const sx=(v.x*.5+.5)*innerWidth,sy=(-v.y*.5+.5)*innerHeight,isSel=idx===selectedIdx;
-    if(v.z<1&&sx>315&&sx<innerWidth-340){
-      el.style.opacity='1';el.style.pointerEvents='auto';el.style.left=`${sx+48}px`;el.style.top=`${sy-14}px`;
-      const col=isSel?'rgba(52,211,153,0.85)':`${pt.color}66`;
-      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-      path.setAttribute('d',`M${sx} ${sy} C${sx+22} ${sy} ${sx+38} ${sy} ${sx+48} ${sy}`);
-      path.setAttribute('stroke',col);path.setAttribute('stroke-width',isSel?1.5:.8);path.setAttribute('fill','none');
-      lineOverlay.appendChild(path);
-      const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
-      dot.setAttribute('cx',sx);dot.setAttribute('cy',sy);dot.setAttribute('r',isSel?5:2.5);dot.setAttribute('fill',isSel?'#34d399':pt.color);
-      lineOverlay.appendChild(dot);
-      if(isSel){
-        const pulse=document.createElementNS('http://www.w3.org/2000/svg','circle');
-        pulse.setAttribute('cx',sx);pulse.setAttribute('cy',sy);pulse.setAttribute('r',8+Math.sin(t*4)*3);
-        pulse.setAttribute('fill','none');pulse.setAttribute('stroke','#34d399');pulse.setAttribute('stroke-width','1');pulse.setAttribute('opacity','0.4');
-        lineOverlay.appendChild(pulse);
-      }
-    }else{el.style.opacity='0';el.style.pointerEvents='none';}
+  
+  // Smart label positioning: stack labels to the RIGHT of the rocket with short connector lines
+  // First pass: collect all screen positions
+  const screenPositions = [];
+  labelData.forEach((pt, idx) => {
+    if(!document.getElementById(`lbl-${idx}`)) { screenPositions.push(null); return; }
+    let worldPos = new THREE.Vector3();
+    if(pt.mesh){
+      pt.mesh.getWorldPosition(worldPos);
+    } else {
+      worldPos.copy(rocketGrp.position);
+      if(pt.key==='engine') worldPos.y = rocketGrp.position.y + currentH*0.04;
+      else if(pt.key==='booster') worldPos.y = rocketGrp.position.y + currentH*0.42;
+      else worldPos.y = rocketGrp.position.y + currentH*0.55;
+    }
+    const proj = worldPos.clone().project(camera);
+    screenPositions.push({
+      sx: (proj.x * 0.5 + 0.5) * window.innerWidth,
+      sy: (-proj.y * 0.5 + 0.5) * window.innerHeight,
+      color: pt.color || '#38bdf8'
+    });
   });
-  if(!document.getElementById('svg-glow')){
-    const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');defs.id='svg-glow';
-    defs.innerHTML='<filter id="glow2"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
-    lineOverlay.appendChild(defs);
-  }
+
+  // Rocket right edge: find rightmost screen X among all parts + offset
+  const validPositions = screenPositions.filter(p => p !== null);
+  const rocketRightX = validPositions.length ? Math.max(...validPositions.map(p=>p.sx)) : window.innerWidth * 0.55;
+  const labelStartX = Math.min(rocketRightX + 48, window.innerWidth - 220);
+
+  // Second pass: place labels stacked vertically, sorted by screenY
+  const sortedIdxs = labelData.map((_,i)=>i).filter(i=>screenPositions[i]);
+  sortedIdxs.sort((a,b)=>(screenPositions[a]?.sy||0)-(screenPositions[b]?.sy||0));
+
+  // Assign Y slots with minimum spacing
+  const minSpacing = 58;
+  const labelYMap = {};
+  let lastY = -999;
+  sortedIdxs.forEach(idx => {
+    const sp = screenPositions[idx];
+    if(!sp) return;
+    let targetY = sp.sy - 14;
+    if(targetY < lastY + minSpacing) targetY = lastY + minSpacing;
+    targetY = Math.min(window.innerHeight - 60, Math.max(50, targetY));
+    labelYMap[idx] = targetY;
+    lastY = targetY;
+  });
+
+  labelData.forEach((pt,idx)=>{
+    const el=document.getElementById(`lbl-${idx}`);
+    if(!el) return;
+
+    if(is3DMode){
+      el.style.display = "none";
+      return;
+    }
+
+    el.style.display = "block";
+
+    const sp = screenPositions[idx];
+    if(!sp) return;
+
+    const clampedX = labelStartX;
+    const clampedY = labelYMap[idx] !== undefined ? labelYMap[idx] : sp.sy - 14;
+
+    el.style.left = clampedX + "px";
+    el.style.top = clampedY + "px";
+    el.style.opacity = '1';
+    el.style.pointerEvents = 'auto';
+
+    // Draw clean SVG elbow line: horizontal tick from rocket surface → then straight to label
+    const midX = sp.sx + (clampedX - sp.sx) * 0.4;
+    const labelMidY = clampedY + 14;
+    
+    // Elbow connector: dot → short horizontal → diagonal → label left edge
+    // Glow/shadow layer for depth
+    const pathGlow = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+    pathGlow.setAttribute('points', `${sp.sx},${sp.sy} ${midX},${sp.sy} ${clampedX},${labelMidY}`);
+    pathGlow.setAttribute('stroke', pt.color || '#38bdf8');
+    pathGlow.setAttribute('stroke-width', '4');
+    pathGlow.setAttribute('stroke-opacity', '0.15');
+    pathGlow.setAttribute('stroke-dasharray', '4 3');
+    pathGlow.setAttribute('fill', 'none');
+    lineOverlay.appendChild(pathGlow);
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+    path.setAttribute('points', `${sp.sx},${sp.sy} ${midX},${sp.sy} ${clampedX},${labelMidY}`);
+    path.setAttribute('stroke', pt.color || '#38bdf8');
+    path.setAttribute('stroke-width', '1.8');
+    path.setAttribute('stroke-opacity', '0.85');
+    path.setAttribute('stroke-dasharray', '5 3');
+    path.setAttribute('fill', 'none');
+    lineOverlay.appendChild(path);
+    
+    // Small dot at rocket surface
+    const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    dot.setAttribute('cx', sp.sx);
+    dot.setAttribute('cy', sp.sy);
+    dot.setAttribute('r', '3.5');
+    dot.setAttribute('fill', pt.color || '#38bdf8');
+    dot.setAttribute('fill-opacity', '1');
+    lineOverlay.appendChild(dot);
+
+    // Outer ring on dot
+    const dotRing = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    dotRing.setAttribute('cx', sp.sx);
+    dotRing.setAttribute('cy', sp.sy);
+    dotRing.setAttribute('r', '5.5');
+    dotRing.setAttribute('fill', 'none');
+    dotRing.setAttribute('stroke', pt.color || '#38bdf8');
+    dotRing.setAttribute('stroke-width', '1');
+    dotRing.setAttribute('stroke-opacity', '0.4');
+    lineOverlay.appendChild(dotRing);
+  });
   controls.update();renderer.render(scene,camera);
 }
 
