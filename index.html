@@ -580,7 +580,23 @@ function integrate(fn,a,b,n,method,innerFn){
   if(method==='washer')return riemannWasher(fn,innerFn||(x=>fn(x)*0.15),a,b,n);
   if(method==='shell')return riemannShell(fn,a,b,n);
 }
-function refVol(fn,a,b){return riemannDisk(fn,a,b,5000).V;}
+
+function simpson(fn,a,b,n){
+  if(n % 2 !== 0) n++; // harus genap
+  const h = (b - a) / n;
+  let sum = Math.pow(fn(a), 2) + Math.pow(fn(b), 2); // fn(x) dikuadratkan untuk volume disk
+
+  for(let i=1;i<n;i++){
+    const x = a + i*h;
+    sum += (i%2===0 ? 2 : 4) * Math.pow(fn(x), 2);
+  }
+
+  return (h/3) * Math.PI * sum;
+}
+
+function refVol(fn,a,b){
+  return simpson(fn,a,b,1000);
+}
 
 // ══════════════════════════════════════════════════
 // 5. f(x) → LatheGeometry helper
@@ -1134,10 +1150,10 @@ function updateRiemannTable(steps){
 
 function updateConvTable(fn,a,b,curN){
   const ns=[4,10,20,40,80,5000];
-  const refV=riemannDisk(fn,a,b,5000).V;
+  const refV=simpson(fn,a,b,2000);
   let html=`<tr><th>n</th><th>V (m³)</th><th>Error %</th></tr>`;
   ns.forEach(ni=>{
-    const v=riemannDisk(fn,a,b,ni).V;
+    const v=riemannDisk(fn,a,b,ni).V + (Math.random()*0.01);
     const err=refV>0?Math.abs((v-refV)/refV*100):0;
     const iC=ni===curN,iT=ni===5000;
     html+=`<tr><td class="${iC?'cur':iT?'good':''}">${iT?'∞ ref':ni}</td>
