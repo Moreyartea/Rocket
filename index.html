@@ -210,7 +210,6 @@ input[type=range]::-webkit-slider-thumb{appearance:none;width:12px;height:12px;b
     <div class="method-row">
       <div class="mb active" data-m="disk" onclick="setMethod('disk')">Disk</div>
       <div class="mb" data-m="washer" onclick="setMethod('washer')">Washer</div>
-      <div class="mb" data-m="shell" onclick="setMethod('shell')">Shell</div>
     </div>
     <div class="fx-box" id="fx-display">Loading...</div>
     <div class="fx-box" id="fx-piecewise"></div>
@@ -362,7 +361,7 @@ document.getElementById("toggle3D").addEventListener("click", () => {
 // 2. GLOBALS
 // ══════════════════════════════════════════════════
 const rocketGrp=new THREE.Group();scene.add(rocketGrp);
-let labelData=[],liquidMeshes=[],sliceMeshes=[],allPartMeshes=[];
+let labelData=[],liquidMeshes=[],sliceMeshes=[],allPartMeshes=[],svgElements=[];
 let selectedIdx=null,currentMethod='disk',currentR=3.0,currentH=18.0;
 let isLaunching = false;
 let velocity = 0;
@@ -537,7 +536,7 @@ function getSections(r,h){
       fn:(x)=>r*(1.06-0.12*(x/(h*0.09))),
       formulaStr:`f(x) = r·(1.06 − 0.12·x/${(h*0.09).toFixed(2)})`},
     lox:{label:'LOX Tank',a:h*0.09,b:h*0.40,color:0x38bdf8,colorHex:'#38bdf8',
-      fn:(x)=>r*(1.00-0.04*(x/h))*0.94,
+      fn:(x)=>r*(1.00-0.04*(x/h))*0.94 * (1 + 0.08*Math.sin(6*x/h) + 0.02*Math.cos(10*x/h)),
       formulaStr:`f(x) = r·(1−0.04·x/${h.toFixed(1)})·0.94`,
       integralStr:`V_LOX = π∫[${(h*0.09).toFixed(1)}→${(h*0.40).toFixed(1)}] [f(x)]² dx`},
     fuel:{label:'RP-1 Fuel',a:h*0.40,b:h*0.68,color:0xfb923c,colorHex:'#fb923c',
@@ -569,16 +568,9 @@ function riemannWasher(outerFn,innerFn,a,b,n){
     if(i<5)steps.push({i,x:x.toFixed(3),R:R.toFixed(3),r:ri.toFixed(3),dV:dV.toFixed(4)});}
   return{V,steps};
 }
-function riemannShell(fn,a,b,n){
-  const dx=(b-a)/n;let V=0;const steps=[];
-  for(let i=0;i<n;i++){const x=a+(i+.5)*dx,fx=fn(x),dV=2*Math.PI*x*fx*dx;V+=dV;
-    if(i<5)steps.push({i,x:x.toFixed(3),fx:fx.toFixed(3),dV:dV.toFixed(4)});}
-  return{V,steps};
-}
 function integrate(fn,a,b,n,method,innerFn){
   if(method==='disk')return riemannDisk(fn,a,b,n);
   if(method==='washer')return riemannWasher(fn,innerFn||(x=>fn(x)*0.15),a,b,n);
-  if(method==='shell')return riemannShell(fn,a,b,n);
 }
 
 function simpson(fn,a,b,n){
@@ -818,11 +810,11 @@ function buildRocket(){
     noz.position.set(Math.cos(ang)*dist,-engH*.45,Math.sin(ang)*dist);rocketGrp.add(noz);
   }
   const engFn=(x)=>r*(.9+.12*(1-x/engH));
-  const engVol=currentMethod==='shell'?riemannShell(engFn,0,engH,n):riemannDisk(engFn,0,engH,n);
+  const engVol = riemannDisk(engFn,0,engH,n);
   labelData.push({name:`Engine`,vol:engVol.V*nCnt, key:'engine',
     formulaStr:`f(x) = r·(0.9+0.12·(1−x/${engH.toFixed(1)}))`,
     domainStr:`x ∈ [0, ${engH.toFixed(2)}]`,
-    integralStr:currentMethod==='shell'?`V = 2π·${nCnt}·∫ x·f(x) dx`:`V = π·${nCnt}·∫ [f(x)]² dx`,
+    integralStr:`V = π·${nCnt}·∫ [f(x)]² dx`,
     desc:`${nCnt}× mesin RS-25\nGaya dorong: ${(nCnt*1.86).toFixed(1)} MN`,
     pos:new THREE.Vector3(r,0,0),mesh:null,color:'#94a3b8',steps:[]});
 
@@ -908,6 +900,33 @@ function buildRocket(){
   updateConvTable(sec.lox.fn,sec.lox.a,sec.lox.b,n);
   updateFormulaPanel(r,h);
 
+  lineOverlay.innerHTML = '';
+  svgElements = [];
+  labelData.forEach(() => {
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    const pathGlow = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+    pathGlow.setAttribute('stroke-width', '4');
+    pathGlow.setAttribute('stroke-opacity', '0.15');
+    pathGlow.setAttribute('stroke-dasharray', '4 3');
+    pathGlow.setAttribute('fill', 'none');
+    const path = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+    path.setAttribute('stroke-width', '1.8');
+    path.setAttribute('stroke-opacity', '0.85');
+    path.setAttribute('stroke-dasharray', '5 3');
+    path.setAttribute('fill', 'none');
+    const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    dot.setAttribute('r', '3.5');
+    dot.setAttribute('fill-opacity', '1');
+    const dotRing = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    dotRing.setAttribute('r', '5.5');
+    dotRing.setAttribute('fill', 'none');
+    dotRing.setAttribute('stroke-width', '1');
+    dotRing.setAttribute('stroke-opacity', '0.4');
+    g.append(pathGlow, path, dot, dotRing);
+    lineOverlay.appendChild(g);
+    svgElements.push({ g, pathGlow, path, dot, dotRing });
+  });
+
   leaderLines.forEach(l => scene.remove(l));
   leaderLines = [];
   // We use SVG lines in the animate loop instead of Three.js lines
@@ -988,13 +1007,6 @@ function drawCanvas(sec,n){
       ctx2d.fillStyle = '#010204';
       ctx2d.fillRect(sx0, syI, sx1-sx0, syB-syI);
     }
-    else if(method==='shell'){
-      ctx2d.strokeStyle = `rgba(52,211,153,0.8)`;
-      ctx2d.beginPath();
-      ctx2d.moveTo(sx(xc), sy(0));
-      ctx2d.lineTo(sx(xc), sy(ri));
-      ctx2d.stroke();
-    }
   }
   // Curve fill
   ctx2d.beginPath();
@@ -1030,8 +1042,8 @@ function drawCanvas(sec,n){
   ctx2d.fillStyle='rgba(100,116,139,0.85)';ctx2d.font='7.5px JetBrains Mono,monospace';
   [0,.25,.5,.75,1].forEach(t=>ctx2d.fillText((t*h).toFixed(0),sx(t*h)-5,P.t+ph+14));
   // Method label
-  const mCols={disk:'#818cf8',washer:'#fb923c',shell:'#34d399'};
-  const mLbls={disk:'DISK METHOD',washer:'WASHER METHOD',shell:'SHELL METHOD'};
+  const mCols={disk:'#818cf8',washer:'#fb923c'};
+  const mLbls={disk:'DISK METHOD',washer:'WASHER METHOD'};
   ctx2d.fillStyle=mCols[method];ctx2d.font='bold 8px JetBrains Mono,monospace';
   ctx2d.fillText(mLbls[method],P.l+pw-88,P.t-8);
   ctx2d.fillStyle='rgba(56,189,248,0.65)';ctx2d.font='8px JetBrains Mono,monospace';
@@ -1150,10 +1162,10 @@ function updateRiemannTable(steps){
 
 function updateConvTable(fn,a,b,curN){
   const ns=[4,10,20,40,80,5000];
-  const refV=simpson(fn,a,b,2000);
+  const refV=simpson(fn,a,b,4000);
   let html=`<tr><th>n</th><th>V (m³)</th><th>Error %</th></tr>`;
   ns.forEach(ni=>{
-    const v=riemannDisk(fn,a,b,ni).V + (Math.random()*0.01);
+    const v=riemannDisk(fn,a,b,ni).V;
     const err=refV>0?Math.abs((v-refV)/refV*100):0;
     const iC=ni===curN,iT=ni===5000;
     html+=`<tr><td class="${iC?'cur':iT?'good':''}">${iT?'∞ ref':ni}</td>
@@ -1186,8 +1198,6 @@ function updateFormulaPanel(r,h){
     el.innerHTML=`<span class="hl">Cakram (Disk)</span><br>V = <span class="hl">π</span>∫ₐᵇ <span class="hl2">[f(x)]²</span>dx<br>≈ Σ <span class="hl">π</span>·<span class="hl2">rᵢ²</span>·Δx<br><br><span class="hl3">LOX:</span> f(x)=${rv}·(1−0.04x/${hv})·0.94<br><span class="hl3">Nose:</span> f(x)=${(r*.78).toFixed(2)}·√(1−t²)`;
   else if(currentMethod==='washer')
     el.innerHTML=`<span class="hl">Cincin (Washer)</span><br>V = <span class="hl">π</span>∫ₐᵇ (<span class="hl2">R²</span>−<span class="hl">r²</span>)dx<br>R(x) = dinding luar<br>r(x) = pipa tengah × 0.16<br><br><span class="hl3">Fuel:</span> R=${rv}·(1−0.04x/${hv})·0.94`;
-  else
-    el.innerHTML=`<span class="hl">Kulit Tabung (Shell)</span><br>V = <span class="hl">2π</span>∫ₐᵇ <span class="hl2">x·f(x)</span>dx<br>≈ Σ 2π·xᵢ·f(xᵢ)·Δx<br><br><span class="hl3">Rotasi</span> terhadap sumbu-y<br><span class="hl3">Disk:</span> rotasi terhadap sumbu-x`;
   document.getElementById('canvas-method-lbl').textContent=currentMethod.toUpperCase();
 }
 
@@ -1209,8 +1219,7 @@ function updateIntegralGlobal(r,h){
   &nbsp;&nbsp;∫_${(h*0.78).toFixed(1)}^${h.toFixed(1)} f₅(x)² dx<br>
   ]<br><br>
 
-  <span class="hl2">Disk Method:</span> rotasi terhadap sumbu-x<br>
-  <span class="hl2">Shell Method:</span> rotasi terhadap sumbu-y
+  <span class="hl2">Disk Method:</span> rotasi terhadap sumbu-x
   `;
 }
 
@@ -1376,7 +1385,6 @@ function animate(){
   rimL.intensity=7+Math.sin(t*1.6)*2.5;
   engGlow.intensity = 2 + Math.sin(Date.now()*0.02)*1.5;
   // Lines
-  lineOverlay.innerHTML='';
   
   // Smart label positioning: stack labels to the RIGHT of the rocket with short connector lines
   // First pass: collect all screen positions
@@ -1429,10 +1437,12 @@ function animate(){
 
     if(is3DMode){
       el.style.display = "none";
+      if(svgElements[idx]) svgElements[idx].g.style.display = "none";
       return;
     }
 
     el.style.display = "block";
+    if(svgElements[idx]) svgElements[idx].g.style.display = "block";
 
     const sp = screenPositions[idx];
     if(!sp) return;
@@ -1449,45 +1459,21 @@ function animate(){
     const midX = sp.sx + (clampedX - sp.sx) * 0.4;
     const labelMidY = clampedY + 14;
     
-    // Elbow connector: dot → short horizontal → diagonal → label left edge
-    // Glow/shadow layer for depth
-    const pathGlow = document.createElementNS('http://www.w3.org/2000/svg','polyline');
-    pathGlow.setAttribute('points', `${sp.sx},${sp.sy} ${midX},${sp.sy} ${clampedX},${labelMidY}`);
-    pathGlow.setAttribute('stroke', pt.color || '#38bdf8');
-    pathGlow.setAttribute('stroke-width', '4');
-    pathGlow.setAttribute('stroke-opacity', '0.15');
-    pathGlow.setAttribute('stroke-dasharray', '4 3');
-    pathGlow.setAttribute('fill', 'none');
-    lineOverlay.appendChild(pathGlow);
-
-    const path = document.createElementNS('http://www.w3.org/2000/svg','polyline');
-    path.setAttribute('points', `${sp.sx},${sp.sy} ${midX},${sp.sy} ${clampedX},${labelMidY}`);
-    path.setAttribute('stroke', pt.color || '#38bdf8');
-    path.setAttribute('stroke-width', '1.8');
-    path.setAttribute('stroke-opacity', '0.85');
-    path.setAttribute('stroke-dasharray', '5 3');
-    path.setAttribute('fill', 'none');
-    lineOverlay.appendChild(path);
-    
-    // Small dot at rocket surface
-    const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
-    dot.setAttribute('cx', sp.sx);
-    dot.setAttribute('cy', sp.sy);
-    dot.setAttribute('r', '3.5');
-    dot.setAttribute('fill', pt.color || '#38bdf8');
-    dot.setAttribute('fill-opacity', '1');
-    lineOverlay.appendChild(dot);
-
-    // Outer ring on dot
-    const dotRing = document.createElementNS('http://www.w3.org/2000/svg','circle');
-    dotRing.setAttribute('cx', sp.sx);
-    dotRing.setAttribute('cy', sp.sy);
-    dotRing.setAttribute('r', '5.5');
-    dotRing.setAttribute('fill', 'none');
-    dotRing.setAttribute('stroke', pt.color || '#38bdf8');
-    dotRing.setAttribute('stroke-width', '1');
-    dotRing.setAttribute('stroke-opacity', '0.4');
-    lineOverlay.appendChild(dotRing);
+    const svgGroup = svgElements[idx];
+    if(svgGroup) {
+      const pointsStr = `${sp.sx},${sp.sy} ${midX},${sp.sy} ${clampedX},${labelMidY}`;
+      const color = pt.color || '#38bdf8';
+      svgGroup.pathGlow.setAttribute('points', pointsStr);
+      svgGroup.pathGlow.setAttribute('stroke', color);
+      svgGroup.path.setAttribute('points', pointsStr);
+      svgGroup.path.setAttribute('stroke', color);
+      svgGroup.dot.setAttribute('cx', sp.sx);
+      svgGroup.dot.setAttribute('cy', sp.sy);
+      svgGroup.dot.setAttribute('fill', color);
+      svgGroup.dotRing.setAttribute('cx', sp.sx);
+      svgGroup.dotRing.setAttribute('cy', sp.sy);
+      svgGroup.dotRing.setAttribute('stroke', color);
+    }
   });
   controls.update();renderer.render(scene,camera);
 }
